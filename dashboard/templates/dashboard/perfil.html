@@ -1,0 +1,614 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        border-radius: 12px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+    
+    .avatar-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1rem;
+    }
+    
+    .avatar-preview {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: #9ca3af;
+    }
+    
+    .avatar-upload-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #dc2626;
+        color: white;
+        border: 3px solid white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .avatar-upload-btn:hover {
+        background: #b91c1c;
+        transform: scale(1.1);
+    }
+    
+    .section-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #dc2626;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+    
+    .form-help {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+    
+    .btn-cancel {
+        background: #6b7280;
+        color: white;
+        padding: 0.75rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 0.5rem;
+    }
+    
+    .btn-cancel:hover {
+        background: #4b5563;
+    }
+    
+    .password-strength {
+        margin-top: 0.5rem;
+    }
+    
+    .strength-bar {
+        height: 4px;
+        border-radius: 2px;
+        background: #e5e7eb;
+        overflow: hidden;
+        margin-bottom: 0.25rem;
+    }
+    
+    .strength-fill {
+        height: 100%;
+        transition: all 0.3s ease;
+        width: 0%;
+    }
+    
+    .strength-weak { background: #ef4444; width: 33%; }
+    .strength-medium { background: #f59e0b; width: 66%; }
+    .strength-strong { background: #10b981; width: 100%; }
+    
+    .strength-text {
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .info-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .info-content {
+        flex: 1;
+    }
+    
+    .info-label {
+        font-size: 0.75rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+    
+    .info-value {
+        font-size: 0.95rem;
+        color: #111827;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="row align-items-center">
+            <div class="col-md-auto text-center text-md-start">
+                <div class="avatar-container d-inline-block">
+                    {% if usuario.avatar %}
+                        <img src="{{ usuario.avatar.url }}" alt="{{ usuario.nombre }}" class="avatar-preview" id="avatarPreview">
+                    {% else %}
+                        <div class="avatar-preview" id="avatarPreview">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    {% endif %}
+                    <label for="id_avatar" class="avatar-upload-btn">
+                        <i class="bi bi-camera-fill"></i>
+                    </label>
+                </div>
+            </div>
+            <div class="col-md text-center text-md-start">
+                <h2 class="mb-1">{{ usuario.nombre }}</h2>
+                <p class="mb-1 opacity-90"><i class="bi bi-envelope me-2"></i>{{ usuario.correo }}</p>
+                <p class="mb-0 opacity-90"><i class="bi bi-shield-check me-2"></i>{{ usuario.id_rol.nombre }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Datos Personales -->
+        <div class="col-lg-6">
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-person-circle"></i>
+                    Datos Personales
+                </h3>
+                
+                <form id="perfilForm" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="id_nombre">
+                            <i class="bi bi-person me-1"></i> Nombre Completo
+                        </label>
+                        {{ perfil_form.nombre }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="id_correo">
+                            <i class="bi bi-envelope me-1"></i> Correo Electrónico
+                        </label>
+                        {{ perfil_form.correo }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="id_telefono">
+                            <i class="bi bi-telephone me-1"></i> Teléfono
+                        </label>
+                        {{ perfil_form.telefono }}
+                        <small class="form-help">Opcional. Ejemplo: +51 999 999 999</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="id_avatar">
+                            <i class="bi bi-image me-1"></i> Avatar
+                        </label>
+                        {{ perfil_form.avatar }}
+                        <small class="form-help">Formatos: JPG, PNG, GIF. Tamaño máximo: 2MB</small>
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="submit" class="btn-save">
+                            <i class="bi bi-check-circle"></i>
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Cambiar Contraseña -->
+        <div class="col-lg-6">
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-shield-lock"></i>
+                    Seguridad
+                </h3>
+                
+                <form id="passwordForm" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="cambiar_password" value="1">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="id_password_actual">
+                            <i class="bi bi-lock me-1"></i> Contraseña Actual
+                        </label>
+                        {{ password_form.password_actual }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="id_password_nueva">
+                            <i class="bi bi-key me-1"></i> Nueva Contraseña
+                        </label>
+                        {{ password_form.password_nueva }}
+                        <small class="form-help">{{ password_form.password_nueva.help_text }}</small>
+                        
+                        <div class="password-strength" id="passwordStrength" style="display: none;">
+                            <div class="strength-bar">
+                                <div class="strength-fill" id="strengthFill"></div>
+                            </div>
+                            <small class="strength-text" id="strengthText"></small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="id_password_confirmar">
+                            <i class="bi bi-check-circle me-1"></i> Confirmar Nueva Contraseña
+                        </label>
+                        {{ password_form.password_confirmar }}
+                    </div>
+                    
+                    <div class="text-end">
+                        <button type="submit" class="btn-save">
+                            <i class="bi bi-shield-check"></i>
+                            Cambiar Contraseña
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Información de la Cuenta -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="bi bi-info-circle"></i>
+                    Información de la Cuenta
+                </h3>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Miembro desde</div>
+                        <div class="info-value">{{ usuario.date_joined|date:"d/m/Y" }}</div>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Último acceso</div>
+                        <div class="info-value">{{ usuario.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</div>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">Estado</div>
+                        <div class="info-value">
+                            {% if usuario.is_active %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactivo</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Preview del avatar
+    document.getElementById('id_avatar').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validar tamaño
+            if (file.size > 2 * 1024 * 1024) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Archivo muy grande',
+                    text: 'El avatar no puede ser mayor a 2MB',
+                    confirmButtonColor: '#dc2626'
+                });
+                this.value = '';
+                return;
+            }
+            
+            // Validar formato
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Formato no válido',
+                    text: 'Solo se permiten imágenes JPG, PNG o GIF',
+                    confirmButtonColor: '#dc2626'
+                });
+                this.value = '';
+                return;
+            }
+            
+            // Mostrar preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('avatarPreview');
+                if (preview.tagName === 'IMG') {
+                    preview.src = e.target.result;
+                } else {
+                    preview.outerHTML = `<img src="${e.target.result}" alt="Avatar" class="avatar-preview" id="avatarPreview">`;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Validación de fuerza de contraseña
+    document.getElementById('id_password_nueva').addEventListener('input', function(e) {
+        const password = e.target.value;
+        const strengthContainer = document.getElementById('passwordStrength');
+        const strengthFill = document.getElementById('strengthFill');
+        const strengthText = document.getElementById('strengthText');
+        
+        if (password.length === 0) {
+            strengthContainer.style.display = 'none';
+            return;
+        }
+        
+        strengthContainer.style.display = 'block';
+        
+        let strength = 0;
+        let text = '';
+        
+        // Calcular fuerza
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+        if (password.match(/\d/)) strength++;
+        if (password.match(/[^a-zA-Z\d]/)) strength++;
+        
+        // Actualizar UI
+        strengthFill.className = 'strength-fill';
+        if (strength <= 2) {
+            strengthFill.classList.add('strength-weak');
+            strengthText.textContent = 'Contraseña débil';
+            strengthText.style.color = '#ef4444';
+        } else if (strength === 3) {
+            strengthFill.classList.add('strength-medium');
+            strengthText.textContent = 'Contraseña media';
+            strengthText.style.color = '#f59e0b';
+        } else {
+            strengthFill.classList.add('strength-strong');
+            strengthText.textContent = 'Contraseña fuerte';
+            strengthText.style.color = '#10b981';
+        }
+    });
+    
+    // Submit del formulario de perfil
+    document.getElementById('perfilForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Mostrar loading
+        Swal.fire({
+            title: 'Guardando...',
+            text: 'Actualizando tu perfil',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        fetch('{% url "usuarios:perfil" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Perfil actualizado!',
+                    text: data.message,
+                    confirmButtonColor: '#dc2626',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                let errorMsg = 'Por favor verifica los datos ingresados.';
+                if (data.errors) {
+                    const errors = Object.values(data.errors).flat();
+                    if (errors.length > 0) {
+                        errorMsg = errors.join('\n');
+                    }
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al actualizar',
+                    text: errorMsg,
+                    confirmButtonColor: '#dc2626'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo conectar con el servidor',
+                confirmButtonColor: '#dc2626'
+            });
+        });
+    });
+    
+    // Submit del formulario de contraseña
+    document.getElementById('passwordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Mostrar loading
+        Swal.fire({
+            title: 'Cambiando contraseña...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        fetch('{% url "usuarios:perfil" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Contraseña actualizada!',
+                    text: data.message,
+                    confirmButtonColor: '#dc2626',
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    this.reset();
+                    document.getElementById('passwordStrength').style.display = 'none';
+                });
+            } else {
+                let errorMsg = 'Por favor verifica los datos ingresados.';
+                if (data.errors) {
+                    const errors = Object.values(data.errors).flat();
+                    if (errors.length > 0) {
+                        errorMsg = errors.join('\n');
+                    }
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al cambiar contraseña',
+                    text: errorMsg,
+                    confirmButtonColor: '#dc2626'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo conectar con el servidor',
+                confirmButtonColor: '#dc2626'
+            });
+        });
+    });
+</script>
+{% endblock %}

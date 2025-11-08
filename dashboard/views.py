@@ -5,8 +5,15 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
+from django.core.paginator import Paginator
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.contrib.auth.hashers import make_password
+from django.conf import settings
 from productos.models import Producto
 from inventarios.models import Inventario
+from usuarios.models import Usuario, PasswordResetToken
 from .forms import ProductoForm, InventarioForm
 
 def login_view(request):
@@ -59,30 +66,55 @@ def home(request):
 
 @login_required
 def productos_view(request):
-    """Vista de productos"""
-    productos = Producto.objects.all().order_by('nombre')
+    """Vista para listar todos los productos con búsqueda, paginación y ordenamiento"""
+    productos = Producto.objects.all()
     
-    # Mock categories for filter
-    class MockCategoria:
-        def __init__(self, id, nombre):
-            self.id = id
-            self.nombre = nombre
+    # Búsqueda por múltiples campos
+    search = request.GET.get('search', '')
+    if search:
+        productos = productos.filter(
+            nombre__icontains=search
+        ) | productos.filter(
+            descripcion__icontains=search
+        ) | productos.filter(
+            precio_referencia__icontains=search
+        )
     
-    categorias = [
-        MockCategoria(1, 'Chocolates'),
-        MockCategoria(2, 'Caramelos'),
-        MockCategoria(3, 'Galletas'),
-        MockCategoria(4, 'Dulces'),
-    ]
+    # Ordenamiento
+    order_by = request.GET.get('order_by', 'id_producto')
+    order_direction = request.GET.get('order_direction', 'asc')
+    
+    # Construir el campo de ordenamiento
+    if order_direction == 'desc':
+        order_field = f'-{order_by}' if not order_by.startswith('-') else order_by
+    else:
+        order_field = order_by.replace('-', '')
+    
+    productos = productos.order_by(order_field)
+    
+    # Paginación - obtener de sesión o de parámetro GET
+    per_page_param = request.GET.get('per_page')
+    if per_page_param:
+        per_page = int(per_page_param)
+        request.session['productos_per_page'] = per_page
+    else:
+        per_page = request.session.get('productos_per_page', 10)
+        # Asegurar que sea entero
+        if isinstance(per_page, str):
+            per_page = int(per_page)
+    
+    paginator = Paginator(productos, per_page)
+    page = request.GET.get('page', 1)
+    productos_paginados = paginator.get_page(page)
     
     context = {
-        'productos': productos,
-        'categorias': categorias,
-        'productos_count': productos.count(),
-        'productos_activos': productos.count(),  # Assumiendo todos activos
-        'productos_stock_bajo': 0,  # Mock data
-        'productos_vencidos': 0,    # Mock data
-        'user': request.user,
+        'productos': productos_paginados,
+        'search': search,
+        'order_by': order_by.replace('-', ''),
+        'order_direction': order_direction,
+        'per_page': per_page,
+        'total_productos': Producto.objects.count(),
+        'productos_activos': Producto.objects.count(),
     }
     return render(request, 'dashboard/productos.html', context)
 
@@ -290,26 +322,129 @@ def forgot_password_view(request):
     """Vista para recuperación de contraseña"""
     if request.method == 'POST':
         email = request.POST.get('email')
-        # Aquí implementarías la lógica de envío de email
-        messages.success(request, 'Se han enviado las instrucciones de recuperación a tu email')
-        return redirect('dashboard:login')
+        
+        try:
+            usuario = Usuario.objects.get(correo=email)
+            
+            # Crear token de recuperación
+            token = PasswordResetToken.objects.create(usuario=usuario)
+            
+            # Construir URL de recuperación
+            reset_url = request.build_absolute_uri(
+                f'/reset-password/?token={token.token}'
+            )
+            
+            # Renderizar template de email
+            html_message = render_to_string('dashboard/password_reset_email.html', {
+                'usuario': usuario,
+                'reset_url': reset_url,
+                'token': token
+            })
+            plain_message = strip_tags(html_message)
+            
+            # Enviar email
+            send_mail(
+                subject='Recuperación de Contraseña - Dulcería Lilis',
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Se ha enviado un email con las instrucciones para recuperar tu contraseña'
+                })
+            
+            messages.success(request, 'Se ha enviado un email con las instrucciones para recuperar tu contraseña')
+            return redirect('dashboard:login')
+            
+        except Usuario.DoesNotExist:
+            # Por seguridad, no revelamos que el email no existe
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Si el email existe, recibirás instrucciones para recuperar tu contraseña'
+                })
+            
+            messages.info(request, 'Si el email existe, recibirás instrucciones para recuperar tu contraseña')
+            return redirect('dashboard:login')
+            
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Error al enviar el email. Por favor intenta nuevamente.'
+                })
+            
+            messages.error(request, 'Error al enviar el email. Por favor intenta nuevamente.')
     
     return render(request, 'dashboard/forgot_password.html')
 
 def reset_password_view(request):
-    """Vista para resetear contraseña"""
-    if request.method == 'POST':
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
-        
-        if password == password_confirm:
-            # Aquí implementarías la lógica de cambio de contraseña
-            messages.success(request, 'Contraseña cambiada exitosamente')
-            return redirect('dashboard:login')
-        else:
-            messages.error(request, 'Las contraseñas no coinciden')
+    """Vista para resetear contraseña con token"""
+    token_str = request.GET.get('token') or request.POST.get('token')
     
-    return render(request, 'dashboard/reset_password.html')
+    if not token_str:
+        messages.error(request, 'Token de recuperación no válido')
+        return redirect('dashboard:login')
+    
+    try:
+        token = PasswordResetToken.objects.get(token=token_str)
+        
+        if not token.is_valid():
+            messages.error(request, 'El token ha expirado o ya fue usado. Solicita uno nuevo.')
+            return redirect('dashboard:forgot_password')
+        
+        if request.method == 'POST':
+            password = request.POST.get('password')
+            password_confirm = request.POST.get('password_confirm')
+            
+            if password != password_confirm:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Las contraseñas no coinciden'
+                    })
+                messages.error(request, 'Las contraseñas no coinciden')
+            elif len(password) < 8:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'La contraseña debe tener al menos 8 caracteres'
+                    })
+                messages.error(request, 'La contraseña debe tener al menos 8 caracteres')
+            else:
+                # Cambiar contraseña
+                usuario = token.usuario
+                usuario.password = make_password(password)
+                usuario.save()
+                
+                # Marcar token como usado
+                token.is_used = True
+                token.save()
+                
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Contraseña cambiada exitosamente'
+                    })
+                
+                messages.success(request, 'Contraseña cambiada exitosamente. Ahora puedes iniciar sesión.')
+                return redirect('dashboard:login')
+        
+        context = {
+            'token': token_str,
+            'usuario': token.usuario
+        }
+        return render(request, 'dashboard/reset_password.html', context)
+        
+    except PasswordResetToken.DoesNotExist:
+        messages.error(request, 'Token de recuperación no válido')
+        return redirect('dashboard:login')
+
 
 @login_required
 def usuarios_view(request):

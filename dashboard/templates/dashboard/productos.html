@@ -321,20 +321,26 @@
         </div>
         
         <!-- Paginación -->
-        {% if productos.has_other_pages %}
         <div class="card-footer bg-light">
             <nav aria-label="Paginación de productos">
                 <ul class="pagination justify-content-center mb-0">
                     {% if productos.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}">
+                            <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Primera página">
                                 <i class="bi bi-chevron-double-left"></i>
                             </a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ productos.previous_page_number }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}">
+                            <a class="page-link" href="?page={{ productos.previous_page_number }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Página anterior">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
                         </li>
                     {% endif %}
                     
@@ -352,31 +358,51 @@
                     
                     {% if productos.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ productos.next_page_number }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}">
+                            <a class="page-link" href="?page={{ productos.next_page_number }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Página siguiente">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ productos.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}">
+                            <a class="page-link" href="?page={{ productos.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Última página">
                                 <i class="bi bi-chevron-double-right"></i>
                             </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
                         </li>
                     {% endif %}
                 </ul>
             </nav>
+            
+            <!-- Info de paginación -->
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    Página {{ productos.number }} de {{ productos.paginator.num_pages }}
+                </small>
+            </div>
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     // Cambiar cantidad de registros por página
     function changePerPage(value) {
         const url = new URL(window.location.href);
         url.searchParams.set('per_page', value);
         url.searchParams.set('page', '1'); // Resetear a primera página
+        
+        console.log('Cambiando per_page a:', value);
+        console.log('Nueva URL:', url.toString());
+        
         window.location.href = url.toString();
     }
     
@@ -420,38 +446,71 @@
     
     // Ver detalles del producto
     function viewProduct(productId) {
-        alert('Vista de detalles del producto #' + productId + ' en desarrollo');
+        Swal.fire({
+            icon: 'info',
+            title: 'Próximamente',
+            text: 'Vista de detalles del producto #' + productId + ' en desarrollo',
+            confirmButtonColor: '#dc2626'
+        });
     }
     
     // Eliminar producto
     function deleteProduct(productId) {
-        if (confirm('¿Estás seguro de que deseas eliminar este producto?\n\nEsta acción no se puede deshacer.')) {
-            // Obtener el token CSRF
-            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
-                             getCookie('csrftoken');
-            
-            fetch(`/productos/eliminar/${productId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Recargar la página para actualizar la lista
-                    window.location.reload();
-                } else {
-                    alert('Error al eliminar el producto');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al eliminar el producto');
-            });
-        }
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Obtener el token CSRF
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                 getCookie('csrftoken');
+                
+                fetch(`/productos/eliminar/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Eliminado',
+                            text: 'El producto ha sido eliminado exitosamente',
+                            confirmButtonColor: '#dc2626'
+                        }).then(() => {
+                            // Recargar la página para actualizar la lista
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo eliminar el producto',
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al eliminar el producto',
+                        confirmButtonColor: '#dc2626'
+                    });
+                });
+            }
+        });
     }
     
     // Exportar a Excel
@@ -461,7 +520,12 @@
         const rows = table.querySelectorAll('tbody tr');
         
         if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length < 5)) {
-            alert('No hay datos para exportar');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Sin datos',
+                text: 'No hay datos para exportar',
+                confirmButtonColor: '#dc2626'
+            });
             return;
         }
         
@@ -491,7 +555,14 @@
         link.click();
         document.body.removeChild(link);
         
-        alert('Productos exportados exitosamente');
+        Swal.fire({
+            icon: 'success',
+            title: 'Exportado',
+            text: 'Productos exportados exitosamente',
+            confirmButtonColor: '#dc2626',
+            timer: 2000,
+            timerProgressBar: true
+        });
     }
     
     // Función auxiliar para obtener cookie CSRF
@@ -518,8 +589,10 @@
     // Inicialización
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Productos página cargada');
-        console.log('Paginación: {{ per_page }} registros por página');
-        console.log('Ordenamiento: {{ order_by }} {{ order_direction }}');
+        console.log('Paginación:', '{{ per_page }}', 'registros por página');
+        console.log('Ordenamiento:', '{{ order_by }}', '{{ order_direction }}');
+        console.log('Search:', '{{ search }}');
+        console.log('Total productos:', '{{ total_productos }}');
         
         // Auto-submit del formulario de búsqueda al escribir (con delay)
         let searchTimeout;

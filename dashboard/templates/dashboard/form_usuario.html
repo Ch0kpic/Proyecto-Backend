@@ -381,6 +381,9 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     function clearForm() {
         document.getElementById('userForm').reset();
@@ -391,9 +394,20 @@
     }
     
     function deleteUser(userId) {
-        if (confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
-            window.location.href = `/usuarios/eliminar/${userId}/`;
-        }
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/usuarios/eliminar/${userId}/`;
+            }
+        });
     }
     
     function addUserToList(userData) {
@@ -438,10 +452,16 @@
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': csrfToken
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 // Agregar usuario a la lista inmediatamente
@@ -450,52 +470,46 @@
                 // Limpiar formulario
                 this.reset();
                 
-                // Mostrar mensaje de éxito
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'alert alert-success alert-dismissible fade show';
-                alertDiv.innerHTML = `
-                    Usuario "${data.user.nombre}" creado exitosamente.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
-                
-                const form = document.querySelector('.p-4');
-                form.insertBefore(alertDiv, form.firstChild);
-                
-                // Remover alerta después de 5 segundos
-                setTimeout(() => {
-                    if (alertDiv.parentNode) {
-                        alertDiv.remove();
-                    }
-                }, 5000);
+                // Mostrar mensaje de éxito con SweetAlert2
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Usuario Creado',
+                    text: `Usuario "${data.user.nombre}" creado exitosamente`,
+                    confirmButtonColor: '#dc2626',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
                 
             } else {
                 // Manejar errores
                 console.error('Error al crear usuario:', data.errors);
                 
-                // Mostrar mensaje de error
-                const alertDiv = document.createElement('div');
-                alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-                alertDiv.innerHTML = `
-                    Error al crear el usuario. Por favor verifica los datos.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                `;
+                // Mostrar mensaje de error con SweetAlert2
+                let errorMsg = 'Por favor verifica los datos ingresados.';
+                if (data.errors) {
+                    const errors = Object.values(data.errors).flat();
+                    if (errors.length > 0) {
+                        errorMsg = errors.join('\n');
+                    }
+                }
                 
-                const form = document.querySelector('.p-4');
-                form.insertBefore(alertDiv, form.firstChild);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al crear usuario',
+                    text: errorMsg,
+                    confirmButtonColor: '#dc2626'
+                });
             }
         })
         .catch(error => {
             console.error('Error:', error);
             
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-            alertDiv.innerHTML = `
-                Error de conexión. Intenta nuevamente.
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            
-            const form = document.querySelector('.p-4');
-            form.insertBefore(alertDiv, form.firstChild);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo conectar con el servidor. Intenta nuevamente.',
+                confirmButtonColor: '#dc2626'
+            });
         });
     });
     

@@ -36,6 +36,10 @@
                             <span class="text-white-50 small">Bienvenido,</span>
                             <span class="text-white fw-medium">{{ user.nombre }}</span>
                         </div>
+                        <a href="{% url 'usuarios:perfil' %}" class="btn btn-outline-light btn-sm me-2" title="Mi Perfil">
+                            <i class="bi bi-person-circle me-1"></i>
+                            Perfil
+                        </a>
                         <a href="{% url 'dashboard:logout' %}" class="btn btn-outline-light btn-sm">
                             <i class="bi bi-box-arrow-right me-1"></i>
                             Cerrar Sesión

@@ -65,11 +65,15 @@ def lista_productos(request):
     productos = productos.order_by(order_field)
     
     # Paginación - obtener de sesión o de parámetro GET
-    per_page = request.GET.get('per_page')
-    if per_page:
-        request.session['productos_per_page'] = int(per_page)
+    per_page_param = request.GET.get('per_page')
+    if per_page_param:
+        per_page = int(per_page_param)
+        request.session['productos_per_page'] = per_page
     else:
         per_page = request.session.get('productos_per_page', 10)
+        # Asegurar que sea entero
+        if isinstance(per_page, str):
+            per_page = int(per_page)
     
     paginator = Paginator(productos, per_page)
     page = request.GET.get('page', 1)
@@ -80,7 +84,7 @@ def lista_productos(request):
         'search': search,
         'order_by': order_by.replace('-', ''),
         'order_direction': order_direction,
-        'per_page': int(per_page),
+        'per_page': per_page,
         'total_productos': Producto.objects.count(),
         'productos_activos': Producto.objects.filter(activo=True).count(),
     }

@@ -70,6 +70,15 @@ def home(request):
 @login_required
 def productos_view(request):
     """Vista para listar todos los productos con búsqueda, paginación y ordenamiento"""
+    user = request.user
+    
+    # Verificar permisos según rol
+    rol_nombre = user.id_rol.nombre if hasattr(user, 'id_rol') and user.id_rol else None
+    es_vendedor = rol_nombre == 'Vendedor'
+    es_bodeguero = rol_nombre == 'Bodeguero'
+    puede_crear_editar = user.is_superuser or rol_nombre in ['Administrador', 'Bodeguero']
+    puede_eliminar = user.is_superuser or rol_nombre == 'Administrador'
+    
     productos = Producto.objects.all()
     
     # Búsqueda por múltiples campos
@@ -118,12 +127,24 @@ def productos_view(request):
         'per_page': per_page,
         'total_productos': Producto.objects.count(),
         'productos_activos': Producto.objects.count(),
+        'es_vendedor': es_vendedor,
+        'es_bodeguero': es_bodeguero,
+        'puede_crear_editar': puede_crear_editar,
+        'puede_eliminar': puede_eliminar,
     }
     return render(request, 'dashboard/productos.html', context)
 
 @login_required
 def inventarios_view(request):
     """Vista de inventarios"""
+    user = request.user
+    
+    # Verificar permisos según rol
+    rol_nombre = user.id_rol.nombre if hasattr(user, 'id_rol') and user.id_rol else None
+    es_vendedor = rol_nombre == 'Vendedor'
+    es_bodeguero = rol_nombre == 'Bodeguero'
+    puede_editar = user.is_superuser or rol_nombre in ['Administrador', 'Bodeguero']
+    
     inventarios = Inventario.objects.select_related('id_producto').all()
     now = timezone.now()
     
@@ -148,6 +169,9 @@ def inventarios_view(request):
         'stock_bajo': 0,
         'today': now.date(),
         'user': request.user,
+        'es_vendedor': es_vendedor,
+        'es_bodeguero': es_bodeguero,
+        'puede_editar': puede_editar,
     }
     return render(request, 'dashboard/inventarios.html', context)
 
@@ -925,6 +949,16 @@ def actualizar_producto(request):
     """API para actualizar un producto"""
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    
+    # Verificar permisos: Administrador y Bodeguero pueden editar
+    user = request.user
+    rol_nombre = user.id_rol.nombre if hasattr(user, 'id_rol') and user.id_rol else None
+    
+    if rol_nombre not in ['Administrador', 'Bodeguero'] and not user.is_superuser:
+        return JsonResponse({
+            'success': False, 
+            'message': 'No tienes permisos para editar productos.'
+        }, status=403)
     
     try:
         from productos.models import Producto

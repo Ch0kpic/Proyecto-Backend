@@ -47,11 +47,30 @@
             </h2>
             <p class="text-muted mb-0">Administra el catálogo de productos de la dulcería</p>
         </div>
+        {% if puede_crear_editar %}
         <button class="btn btn-lilis-primary" onclick="openProductForm()">
             <i class="bi bi-plus-circle me-2"></i>
             Nuevo Producto
         </button>
+        {% endif %}
     </div>
+    
+    <!-- Mensaje para vendedores -->
+    {% if es_vendedor %}
+    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <div>
+            <strong>Modo solo lectura:</strong> Como vendedor, puedes visualizar productos pero no editarlos ni eliminarlos.
+        </div>
+    </div>
+    {% elif es_bodeguero %}
+    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <div>
+            <strong>Permisos de bodeguero:</strong> Puedes crear y editar productos, pero no eliminarlos.
+        </div>
+    </div>
+    {% endif %}
     
     <!-- Stats Cards -->
     <div class="row g-3 mb-4">
@@ -275,6 +294,7 @@
                         </td>
                         <td>
                             <div class="product-actions d-flex justify-content-center gap-1">
+                                {% if puede_crear_editar %}
                                 <a href="{% url 'dashboard:editar_producto' producto.id_producto %}" 
                                    class="btn btn-sm" 
                                    style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;"
@@ -282,16 +302,19 @@
                                    onclick="event.preventDefault(); editProduct('{{ producto.id_producto }}');">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                {% endif %}
                                 <button class="btn btn-sm btn-outline-info" 
                                         onclick="viewProduct('{{ producto.id_producto }}')" 
                                         title="Ver detalles">
                                     <i class="bi bi-eye"></i>
                                 </button>
+                                {% if puede_eliminar %}
                                 <button class="btn btn-sm btn-outline-danger" 
                                         onclick="deleteProduct('{{ producto.id_producto }}')" 
                                         title="Eliminar">
                                     <i class="bi bi-trash"></i>
                                 </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

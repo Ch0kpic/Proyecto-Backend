@@ -4,6 +4,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -14,42 +16,152 @@ import os
 import re
 
 class UsuarioForm(forms.ModelForm):
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Contraseña'}),
-        label='Contraseña'
-    )
-    confirm_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Confirmar contraseña'}),
-        label='Confirmar contraseña'
-    )
-    
     class Meta:
         model = Usuario
-        fields = ['nombre', 'correo', 'id_rol', 'is_active']
+        fields = ['nombre', 'correo', 'telefono', 'id_rol', 'is_active']
         widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Nombre completo'}),
-            'correo': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'correo@ejemplo.com'}),
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-input', 
+                'placeholder': 'Nombre completo',
+                'maxlength': '100',
+                'minlength': '3'
+            }),
+            'correo': forms.EmailInput(attrs={
+                'class': 'form-input', 
+                'placeholder': 'correo@ejemplo.com',
+                'maxlength': '150'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-input', 
+                'placeholder': '+56 9 1234 5678',
+                'maxlength': '15'
+            }),
             'id_rol': forms.Select(attrs={'class': 'form-select'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
         }
         
     def __init__(self, *args, **kwargs):
         self.is_edit = kwargs.pop('is_edit', False)
+        self.current_user = kwargs.pop('current_user', None)
         super().__init__(*args, **kwargs)
         
-        if self.is_edit:
-            self.fields['password'].required = False
-            self.fields['confirm_password'].required = False
-            self.fields['password'].help_text = "Deja en blanco para mantener la contraseña actual"
+        # Agregar límites de caracteres a los campos
+        self.fields['nombre'].max_length = 100
+        self.fields['nombre'].min_length = 3
+        self.fields['correo'].max_length = 150
+        self.fields['telefono'].max_length = 15
+        self.fields['telefono'].required = False
         
+        # Si es el admin principal, no permitir cambiar su estado
+        if self.is_edit and self.instance and not self.instance.can_be_deactivated():
+            self.fields['is_active'].widget.attrs['disabled'] = True
+            self.fields['is_active'].help_text = "Este usuario no puede ser desactivado"
+    
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre', '').strip()
+        
+        if not nombre:
+            raise forms.ValidationError('El nombre es requerido')
+        
+        if len(nombre) < 3:
+            raise forms.ValidationError('El nombre debe tener al menos 3 caracteres')
+        
+        if len(nombre) > 100:
+            raise forms.ValidationError('El nombre no puede exceder 100 caracteres')
+        
+        # Validar que solo contenga letras y espacios
+        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', nombre):
+            raise forms.ValidationError('El nombre solo puede contener letras y espacios')
+        
+        return nombre
+    
+    def clean_correo(self):
+        correo = self.cleaned_data.get('correo', '').strip().lower()
+        
+        if not correo:
+            raise forms.ValidationError('El correo es requerido')
+        
+        if len(correo) > 150:
+            raise forms.ValidationError('El correo no puede exceder 150 caracteres')
+        
+        # Validar formato de email usando el validador de Django
+        try:
+            validate_email(correo)
+        except ValidationError:
+            raise forms.ValidationError('Ingresa un correo electrónico válido')
+        
+        # Validación adicional de formato más estricta
+        email_regex = r'^[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, correo):
+            raise forms.ValidationError('Ingresa un correo electrónico válido con formato correcto')
+        
+        # Validar que no tenga puntos consecutivos
+        if '..' in correo:
+            raise forms.ValidationError('El correo no puede contener puntos consecutivos')
+        
+        # Validar que el dominio tenga al menos un punto
+        if '@' in correo:
+            domain = correo.split('@')[1]
+            if '.' not in domain:
+                raise forms.ValidationError('El dominio del correo debe tener un formato válido (ej: gmail.com)')
+            
+            # Validar que el dominio no empiece o termine con punto o guión
+            if domain.startswith('.') or domain.startswith('-') or domain.endswith('.') or domain.endswith('-'):
+                raise forms.ValidationError('El dominio del correo tiene un formato inválido')
+            
+            # Validar dominios comunes con errores tipográficos
+            domain_lower = domain.lower()
+            invalid_domains = ['gmial.com', 'gmai.com', 'hotmial.com', 'yahooo.com', 'outlok.com']
+            if domain_lower in invalid_domains:
+                suggestions = {
+                    'gmial.com': 'gmail.com',
+                    'gmai.com': 'gmail.com',
+                    'hotmial.com': 'hotmail.com',
+                    'yahooo.com': 'yahoo.com',
+                    'outlok.com': 'outlook.com'
+                }
+                raise forms.ValidationError(f'¿Quisiste decir {suggestions.get(domain_lower)}?')
+        
+        # Verificar que el correo no esté en uso (excepto en edición del mismo usuario)
+        if self.is_edit and self.instance:
+            if Usuario.objects.filter(correo=correo).exclude(pk=self.instance.pk).exists():
+                raise forms.ValidationError('Este correo ya está registrado')
+        else:
+            if Usuario.objects.filter(correo=correo).exists():
+                raise forms.ValidationError('Este correo ya está registrado')
+        
+        return correo
+    
+    def clean_telefono(self):
+        telefono = self.cleaned_data.get('telefono', '').strip()
+        
+        if not telefono:
+            return telefono  # Permitir vacío ya que no es requerido
+        
+        if len(telefono) > 15:
+            raise forms.ValidationError('El teléfono no puede exceder 15 caracteres')
+        
+        # Validar formato (solo números, espacios, guiones y +)
+        if not re.match(r'^[\d\s\-\+]+$', telefono):
+            raise forms.ValidationError('El teléfono solo puede contener números, espacios, guiones y +')
+        
+        # Contar solo los dígitos
+        digitos = re.sub(r'[^\d]', '', telefono)
+        if len(digitos) < 7:
+            raise forms.ValidationError('El teléfono debe tener al menos 7 dígitos')
+        
+        return telefono
+    
     def clean(self):
         cleaned_data = super().clean()
-        password = cleaned_data.get('password')
-        confirm_password = cleaned_data.get('confirm_password')
         
-        if not self.is_edit or password:
-            if password != confirm_password:
-                raise forms.ValidationError("Las contraseñas no coinciden")
+        # Validar que no se desactive al admin principal
+        if self.is_edit and self.instance:
+            is_active = cleaned_data.get('is_active', True)
+            if not is_active and not self.instance.can_be_deactivated():
+                raise forms.ValidationError(
+                    "No se puede desactivar este usuario porque es un administrador del sistema"
+                )
                 
         return cleaned_data
 
@@ -184,15 +296,26 @@ def lista_usuarios(request):
 def agregar_usuario(request):
     """Vista para agregar un nuevo usuario"""
     if request.method == 'POST':
-        form = UsuarioForm(request.POST)
+        form = UsuarioForm(request.POST, current_user=request.user)
         if form.is_valid():
-            usuario = form.save(commit=False)
-            # Establecer username como correo
-            usuario.username = form.cleaned_data['correo']
-            usuario.email = form.cleaned_data['correo']
-            # Encriptar contraseña
-            usuario.password = make_password(form.cleaned_data['password'])
-            usuario.save()
+            try:
+                usuario = form.save(commit=False)
+                # Establecer username como correo
+                usuario.username = form.cleaned_data['correo']
+                usuario.email = form.cleaned_data['correo']
+                # Encriptar contraseña
+                usuario.password = make_password(form.cleaned_data['password'])
+                usuario.save()
+            except ValidationError as e:
+                # Manejar errores de validación del modelo
+                form.add_error(None, str(e))
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+                    return JsonResponse({
+                        'success': False,
+                        'errors': form.errors
+                    })
+                messages.error(request, f'Error al crear usuario: {str(e)}')
+                return redirect('usuarios:lista_usuarios')
             
             # Si es una petición AJAX, responder con JSON
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
@@ -239,13 +362,24 @@ def editar_usuario(request, usuario_id):
     usuario = get_object_or_404(Usuario, pk=usuario_id)
     
     if request.method == 'POST':
-        form = UsuarioForm(request.POST, instance=usuario, is_edit=True)
+        form = UsuarioForm(request.POST, instance=usuario, is_edit=True, current_user=request.user)
         if form.is_valid():
-            usuario = form.save(commit=False)
-            # Actualizar contraseña solo si se proporcionó una nueva
-            if form.cleaned_data['password']:
-                usuario.password = make_password(form.cleaned_data['password'])
-            usuario.save()
+            try:
+                usuario = form.save(commit=False)
+                # Actualizar contraseña solo si se proporcionó una nueva
+                if form.cleaned_data.get('password'):
+                    usuario.password = make_password(form.cleaned_data['password'])
+                usuario.save()
+            except ValidationError as e:
+                form.add_error(None, str(e))
+                messages.error(request, f'Error al actualizar usuario: {str(e)}')
+                context = {
+                    'form': form,
+                    'usuario': usuario,
+                    'title': 'Editar Usuario',
+                    'action': 'editar'
+                }
+                return render(request, 'dashboard/form_usuario.html', context)
             
             messages.success(request, f'Usuario "{usuario.nombre}" actualizado exitosamente.')
             return redirect('usuarios:lista_usuarios')
@@ -266,10 +400,43 @@ def eliminar_usuario(request, usuario_id):
     """Vista para eliminar un usuario"""
     usuario = get_object_or_404(Usuario, pk=usuario_id)
     
+    # Verificar si el usuario puede ser eliminado
+    if not usuario.can_be_deleted():
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'No se puede eliminar este usuario porque es un administrador del sistema'
+            })
+        messages.error(request, 'No se puede eliminar este usuario porque es un administrador del sistema')
+        return redirect('usuarios:lista_usuarios')
+    
+    # Evitar que un usuario se elimine a sí mismo
+    if usuario.id_usuario == request.user.id_usuario:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'No puedes eliminar tu propio usuario'
+            })
+        messages.error(request, 'No puedes eliminar tu propio usuario')
+        return redirect('usuarios:lista_usuarios')
+    
     if request.method == 'POST':
         nombre = usuario.nombre
-        usuario.delete()
-        messages.success(request, f'Usuario "{nombre}" eliminado exitosamente.')
+        try:
+            usuario.delete()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Usuario "{nombre}" eliminado exitosamente'
+                })
+            messages.success(request, f'Usuario "{nombre}" eliminado exitosamente.')
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error al eliminar usuario: {str(e)}'
+                })
+            messages.error(request, f'Error al eliminar usuario: {str(e)}')
         return redirect('usuarios:lista_usuarios')
     
     # Si es una petición GET desde el modal, redirigir a la lista
@@ -281,11 +448,48 @@ def eliminar_usuario(request, usuario_id):
 def toggle_usuario_status(request, usuario_id):
     """Vista para activar/desactivar usuario"""
     usuario = get_object_or_404(Usuario, pk=usuario_id)
-    usuario.is_active = not usuario.is_active
-    usuario.save()
     
-    status = "activado" if usuario.is_active else "desactivado"
-    messages.success(request, f'Usuario "{usuario.nombre}" {status} exitosamente.')
+    # Si se intenta desactivar, verificar si puede ser desactivado
+    if usuario.is_active and not usuario.can_be_deactivated():
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'No se puede desactivar este usuario porque es un administrador del sistema'
+            })
+        messages.error(request, 'No se puede desactivar este usuario porque es un administrador del sistema')
+        return redirect('usuarios:lista_usuarios')
+    
+    # Evitar que un usuario se desactive a sí mismo
+    if usuario.id_usuario == request.user.id_usuario:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': 'No puedes desactivar tu propio usuario'
+            })
+        messages.error(request, 'No puedes desactivar tu propio usuario')
+        return redirect('usuarios:lista_usuarios')
+    
+    try:
+        usuario.is_active = not usuario.is_active
+        usuario.save()
+        
+        status = "activado" if usuario.is_active else "desactivado"
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f'Usuario "{usuario.nombre}" {status} exitosamente'
+            })
+        
+        messages.success(request, f'Usuario "{usuario.nombre}" {status} exitosamente.')
+    except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al cambiar estado: {str(e)}'
+            })
+        messages.error(request, f'Error al cambiar estado: {str(e)}')
+    
     return redirect('usuarios:lista_usuarios')
 
 @login_required

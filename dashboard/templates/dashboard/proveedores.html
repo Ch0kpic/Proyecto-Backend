@@ -4,6 +4,11 @@
 {% block title %}Gestión de Proveedores - Dulcería Lilis{% endblock %}
 
 {% block extra_css %}
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<!-- Animate.css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
 <style>
     .provider-card {
         border: 1px solid var(--lilis-gray-300);
@@ -43,12 +48,17 @@
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="text-dark fw-bold mb-1">
-                <i class="bi bi-building text-lilis-blue me-2"></i>
-                Gestión de Proveedores
-            </h2>
-            <p class="text-muted mb-0">Administra la red de proveedores de la dulcería</p>
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary" title="Volver al inicio">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="text-dark fw-bold mb-1">
+                    <i class="bi bi-building text-lilis-blue me-2"></i>
+                    Gestión de Proveedores
+                </h2>
+                <p class="text-muted mb-0">Administra la red de proveedores de la dulcería</p>
+            </div>
         </div>
         <button class="btn btn-lilis-primary" data-bs-toggle="modal" data-bs-target="#providerModal">
             <i class="bi bi-plus-circle me-2"></i>
@@ -118,124 +128,274 @@
     <!-- Filters Card -->
     <div class="lilis-card mb-4">
         <div class="lilis-card-body">
-            <h5 class="card-title mb-3">
-                <i class="bi bi-funnel me-2"></i>
+            <h5 class="mb-3">
+                <i class="bi bi-search me-2"></i>
                 Buscar proveedores
             </h5>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" class="lilis-form-control" id="searchProvider" placeholder="Buscar por nombre o RUC...">
+            
+            <form method="get" id="searchForm">
+                <div class="row g-3 align-items-end">
+                    <!-- Buscador -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-filter me-1"></i>
+                            Buscar por nombre, contacto o dirección
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   name="search" 
+                                   id="searchProvider" 
+                                   placeholder="Escribe para buscar..."
+                                   value="{{ search }}">
+                            {% if search %}
+                            <a href="{% url 'dashboard:proveedores' %}" 
+                               class="btn btn-outline-secondary"
+                               title="Limpiar búsqueda">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Registros por página -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-list-ol me-1"></i>
+                            Registros por página
+                        </label>
+                        <select class="form-select" id="perPageSelect" onchange="changePerPage(this.value)">
+                            <option value="5" {% if per_page == 5 %}selected{% endif %}>5 registros</option>
+                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10 registros</option>
+                            <option value="15" {% if per_page == 15 %}selected{% endif %}>15 registros</option>
+                            <option value="30" {% if per_page == 30 %}selected{% endif %}>30 registros</option>
+                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50 registros</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Ordenar por -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-sort-alpha-down me-1"></i>
+                            Ordenar por
+                        </label>
+                        <select class="form-select" id="orderBySelect" onchange="changeOrderBy(this.value)">
+                            <option value="id_proveedor" {% if order_by == 'id_proveedor' %}selected{% endif %}>ID</option>
+                            <option value="nombre" {% if order_by == 'nombre' %}selected{% endif %}>Nombre</option>
+                            <option value="contacto" {% if order_by == 'contacto' %}selected{% endif %}>Contacto</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Dirección de orden -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-arrow-down-up me-1"></i>
+                            Dirección
+                        </label>
+                        <button type="button" 
+                                class="btn w-100" 
+                                style="background: linear-gradient(135deg, var(--lilis-blue), var(--lilis-blue-hover)); color: white; font-weight: 600;"
+                                onclick="toggleOrderDirection()" 
+                                id="orderDirectionBtn">
+                            <i class="bi bi-sort-{% if order_direction == 'desc' %}down{% else %}up{% endif %} me-2"></i>
+                            {% if order_direction == 'desc' %}Descendente{% else %}Ascendente{% endif %}
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <select class="lilis-form-control" id="filterCity">
-                        <option value="">Todas las ciudades</option>
-                        <option value="Lima">Lima</option>
-                        <option value="Arequipa">Arequipa</option>
-                        <option value="Cusco">Cusco</option>
-                        <option value="Trujillo">Trujillo</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="lilis-form-control" id="filterType">
-                        <option value="">Todos los tipos</option>
-                        <option value="distribuidor">Distribuidor</option>
-                        <option value="fabricante">Fabricante</option>
-                        <option value="mayorista">Mayorista</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select class="lilis-form-control" id="filterStatus">
-                        <option value="">Todos los estados</option>
-                        <option value="activo">Activo</option>
-                        <option value="inactivo">Inactivo</option>
-                        <option value="pendiente">Pendiente</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-outline-success w-100" onclick="exportProvidersToExcel()">
-                        <i class="bi bi-file-excel me-1"></i>
+            </form>
+            
+            <!-- Información y botón exportar -->
+            <div class="row mt-4 pt-3 border-top">
+                <div class="col-md-6 d-flex align-items-center">
+                    <a href="{% url 'dashboard:exportar_proveedores_excel' %}" class="btn btn-outline-success">
+                        <i class="bi bi-file-earmark-excel me-2"></i>
                         Exportar a Excel
-                    </button>
+                    </a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Mostrando 
+                        <strong>{{ proveedores.start_index }}</strong> - <strong>{{ proveedores.end_index }}</strong> 
+                        de <strong>{{ proveedores.paginator.count }}</strong> proveedores
+                    </span>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Providers Grid -->
-    <div class="row g-4" id="providersGrid">
-        {% for proveedor in proveedores %}
-        <div class="col-md-6 col-lg-4" data-provider-id="{{ proveedor.id_proveedor }}">
-            <div class="provider-card p-4 h-100">
-                <div class="d-flex align-items-start mb-3">
-                    <div class="provider-logo me-3">
-                        <i class="bi bi-building-fill"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h5 class="fw-bold mb-1">{{ proveedor.nombre }}</h5>
-                        <div class="contact-info mb-2">
-                            <div><i class="bi bi-person me-1"></i>{{ proveedor.contacto|default:"Sin contacto" }}</div>
-                            <div><i class="bi bi-telephone me-1"></i>{{ proveedor.telefono|default:"Sin teléfono" }}</div>
-                            <div><i class="bi bi-envelope me-1"></i>{{ proveedor.email|default:"Sin email" }}</div>
-                        </div>
-                        <div class="d-flex align-items-center mb-2">
-                            <span class="badge bg-success me-2">Activo</span>
-                            <div class="provider-rating">
-                                {% for i in "12345" %}
-                                    <i class="bi bi-star-fill"></i>
-                                {% endfor %}
+    <!-- Providers Table -->
+    <div class="lilis-card">
+        <div class="lilis-card-header d-flex justify-content-between align-items-center">
+            <h5 class="lilis-card-title mb-0">
+                <i class="bi bi-table me-2"></i>
+                Lista de Proveedores
+            </h5>
+            <span class="badge bg-secondary">{{ proveedores.paginator.count }} proveedores totales</span>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="providersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('id_proveedor')">
+                            <i class="bi bi-hash me-1"></i>ID
+                            {% if order_by == 'id_proveedor' %}
+                                <i class="bi bi-caret-{% if order_direction == 'desc' %}down{% else %}up{% endif %}-fill"></i>
+                            {% endif %}
+                        </th>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('nombre')">
+                            <i class="bi bi-building me-1"></i>Nombre
+                            {% if order_by == 'nombre' %}
+                                <i class="bi bi-caret-{% if order_direction == 'desc' %}down{% else %}up{% endif %}-fill"></i>
+                            {% endif %}
+                        </th>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('contacto')">
+                            <i class="bi bi-person me-1"></i>Contacto
+                            {% if order_by == 'contacto' %}
+                                <i class="bi bi-caret-{% if order_direction == 'desc' %}down{% else %}up{% endif %}-fill"></i>
+                            {% endif %}
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-geo-alt me-1"></i>Dirección
+                        </th>
+                        <th scope="col" class="text-center">
+                            <i class="bi bi-gear me-1"></i>Acciones
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proveedor in proveedores %}
+                    <tr data-provider-id="{{ proveedor.id_proveedor }}">
+                        <td>
+                            <span class="badge" style="background: linear-gradient(135deg, var(--lilis-blue), var(--lilis-blue-hover)); font-size: 0.9rem;">
+                                #{{ proveedor.id_proveedor }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong>{{ proveedor.nombre }}</strong>
+                        </td>
+                        <td>{{ proveedor.contacto|default:"Sin contacto" }}</td>
+                        <td>
+                            <span class="text-muted">{{ proveedor.direccion|default:"Sin dirección"|truncatechars:50 }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-1">
+                                <button class="btn btn-sm btn-outline-info" 
+                                        onclick="viewProvider('{{ proveedor.id_proveedor }}')" 
+                                        title="Ver detalles">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                {% if user.is_superuser or user.id_rol.nombre == 'Administrador' %}
+                                <button class="btn btn-sm" 
+                                        style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;"
+                                        onclick="editProvider('{{ proveedor.id_proveedor }}')" 
+                                        title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteProvider('{{ proveedor.id_proveedor }}', '{{ proveedor.nombre }}')" 
+                                        title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
                             </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="border-top pt-3">
-                    <div class="row g-2 text-center mb-3">
-                        <div class="col">
-                            <div class="fw-bold text-lilis-blue">0</div>
-                            <small class="text-muted">Productos</small>
-                        </div>
-                        <div class="col">
-                            <div class="fw-bold text-lilis-green">0</div>
-                            <small class="text-muted">Órdenes</small>
-                        </div>
-                        <div class="col">
-                            <div class="fw-bold text-lilis-yellow">4.5</div>
-                            <small class="text-muted">Rating</small>
-                        </div>
-                    </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-building display-4 d-block mb-3" style="color: var(--lilis-gray-300);"></i>
+                                {% if search %}
+                                    <p class="mb-3">No se encontraron proveedores que coincidan con "{{ search }}"</p>
+                                    <a href="{% url 'dashboard:proveedores' %}" class="btn btn-lilis-primary">
+                                        <i class="bi bi-arrow-left me-2"></i>
+                                        Ver todos los proveedores
+                                    </a>
+                                {% else %}
+                                    <p class="mb-3">No hay proveedores registrados</p>
+                                    <button class="btn btn-lilis-primary" data-bs-toggle="modal" data-bs-target="#providerModal">
+                                        <i class="bi bi-plus-circle me-2"></i>
+                                        Crear primer proveedor
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        <div class="lilis-card-footer bg-light">
+            <nav aria-label="Paginación de proveedores">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if proveedores.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Primera página">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ proveedores.previous_page_number }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Página anterior">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                        </li>
+                    {% endif %}
                     
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary btn-sm flex-fill" onclick="viewProvider('{{ proveedor.id_proveedor }}')">
-                            <i class="bi bi-eye me-1"></i>
-                            Ver
-                        </button>
-                        {% if user.is_superuser or user.id_rol.nombre == 'Administrador' %}
-                        <button class="btn btn-outline-warning btn-sm flex-fill" onclick="editProvider('{{ proveedor.id_proveedor }}')">
-                            <i class="bi bi-pencil me-1"></i>
-                            Editar
-                        </button>
+                    {% for num in proveedores.paginator.page_range %}
+                        {% if proveedores.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link" style="background: linear-gradient(135deg, var(--lilis-blue), var(--lilis-blue-hover)); border-color: var(--lilis-blue);">{{ num }}</span>
+                            </li>
+                        {% elif num > proveedores.number|add:'-3' and num < proveedores.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}">{{ num }}</a>
+                            </li>
                         {% endif %}
-                    </div>
-                </div>
+                    {% endfor %}
+                    
+                    {% if proveedores.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ proveedores.next_page_number }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Página siguiente">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ proveedores.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Última página">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            
+            <!-- Info de paginación -->
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    Página {{ proveedores.number }} de {{ proveedores.paginator.num_pages }}
+                </small>
             </div>
         </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="lilis-card">
-                <div class="lilis-card-body text-center py-5">
-                    <div class="text-muted">
-                        <i class="bi bi-building display-4 d-block mb-3" style="color: var(--lilis-gray-300);"></i>
-                        <h5 class="mb-3">No se encontraron proveedores</h5>
-                        <p class="mb-3">Comienza agregando tu primer proveedor</p>
-                        <button class="btn btn-lilis-primary" data-bs-toggle="modal" data-bs-target="#providerModal">
-                            <i class="bi bi-plus-circle me-2"></i>
-                            Crear primer proveedor
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
     </div>
 </div>
 
@@ -278,6 +438,7 @@
                 
                 <form id="providerForm">
                     {% csrf_token %}
+                    <input type="hidden" id="proveedorId" name="proveedor_id">
                     
                     <!-- Step 1: Identificación y Contacto -->
                     <div class="step-content" data-step="1">
@@ -289,37 +450,37 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Nombre del Proveedor *</label>
-                                <input type="text" class="lilis-form-control" name="nombre" required>
+                                <input type="text" class="lilis-form-control" id="proveedorNombre" name="nombre" required maxlength="150">
                                 <div class="lilis-form-text">Nombre comercial o razón social</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="lilis-form-label">RUC *</label>
-                                <input type="text" class="lilis-form-control" name="ruc" required maxlength="11">
-                                <div class="lilis-form-text">Registro Único de Contribuyente</div>
+                                <label class="lilis-form-label">RUT *</label>
+                                <input type="text" class="lilis-form-control" id="proveedorRut" name="rut" required maxlength="11">
+                                <div class="lilis-form-text">Rol Único Tributario</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Persona de Contacto</label>
-                                <input type="text" class="lilis-form-control" name="contacto">
+                                <input type="text" class="lilis-form-control" id="proveedorContacto" name="contacto" maxlength="200">
                             </div>
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Cargo del Contacto</label>
-                                <input type="text" class="lilis-form-control" name="cargo_contacto">
+                                <input type="text" class="lilis-form-control" id="proveedorCargo" name="cargo_contacto" maxlength="100">
                             </div>
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Teléfono Principal *</label>
-                                <input type="tel" class="lilis-form-control" name="telefono" required>
+                                <input type="tel" class="lilis-form-control" id="proveedorTelefono" name="telefono" required maxlength="15">
                             </div>
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Teléfono Secundario</label>
-                                <input type="tel" class="lilis-form-control" name="telefono_secundario">
+                                <input type="tel" class="lilis-form-control" id="proveedorTelefono2" name="telefono_secundario" maxlength="15">
                             </div>
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Email Principal *</label>
-                                <input type="email" class="lilis-form-control" name="email" required>
+                                <input type="email" class="lilis-form-control" id="proveedorEmail" name="email" required maxlength="150">
                             </div>
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Email Secundario</label>
-                                <input type="email" class="lilis-form-control" name="email_secundario">
+                                <input type="email" class="lilis-form-control" id="proveedorEmail2" name="email_secundario" maxlength="150">
                             </div>
                         </div>
                     </div>
@@ -332,58 +493,65 @@
                         </h6>
                         
                         <div class="row g-3">
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 <label class="lilis-form-label">Dirección *</label>
-                                <input type="text" class="lilis-form-control" name="direccion" required>
+                                <input type="text" class="lilis-form-control" id="proveedorDireccion" name="direccion" required maxlength="200" placeholder="Calle y número">
                             </div>
-                            <div class="col-md-4">
-                                <label class="lilis-form-label">Código Postal</label>
-                                <input type="text" class="lilis-form-control" name="codigo_postal">
+                            <div class="col-md-6">
+                                <label class="lilis-form-label">Comuna *</label>
+                                <input type="text" class="lilis-form-control" id="proveedorComuna" name="comuna" required maxlength="100" placeholder="Ej: Providencia, Las Condes">
                             </div>
-                            <div class="col-md-4">
-                                <label class="lilis-form-label">Distrito</label>
-                                <input type="text" class="lilis-form-control" name="distrito">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="lilis-form-label">Provincia</label>
-                                <input type="text" class="lilis-form-control" name="provincia">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="lilis-form-label">Departamento</label>
-                                <select class="lilis-form-control" name="departamento">
-                                    <option value="">Seleccionar...</option>
-                                    <option value="Lima">Lima</option>
-                                    <option value="Arequipa">Arequipa</option>
-                                    <option value="Cusco">Cusco</option>
-                                    <option value="Trujillo">La Libertad</option>
+                            <div class="col-md-6">
+                                <label class="lilis-form-label">Región *</label>
+                                <select class="lilis-form-control" id="proveedorRegion" name="region" required>
+                                    <option value="">Seleccionar región...</option>
+                                    <option value="Región de Arica y Parinacota">Región de Arica y Parinacota</option>
+                                    <option value="Región de Tarapacá">Región de Tarapacá</option>
+                                    <option value="Región de Antofagasta">Región de Antofagasta</option>
+                                    <option value="Región de Atacama">Región de Atacama</option>
+                                    <option value="Región de Coquimbo">Región de Coquimbo</option>
+                                    <option value="Región de Valparaíso">Región de Valparaíso</option>
+                                    <option value="Región Metropolitana">Región Metropolitana</option>
+                                    <option value="Región del Libertador Gral. Bernardo O'Higgins">Región del Libertador Gral. Bernardo O'Higgins</option>
+                                    <option value="Región del Maule">Región del Maule</option>
+                                    <option value="Región de Ñuble">Región de Ñuble</option>
+                                    <option value="Región del Biobío">Región del Biobío</option>
+                                    <option value="Región de La Araucanía">Región de La Araucanía</option>
+                                    <option value="Región de Los Ríos">Región de Los Ríos</option>
+                                    <option value="Región de Los Lagos">Región de Los Lagos</option>
+                                    <option value="Región Aysén del Gral. Carlos Ibáñez del Campo">Región Aysén del Gral. Carlos Ibáñez del Campo</option>
+                                    <option value="Región de Magallanes y de la Antártica Chilena">Región de Magallanes y de la Antártica Chilena</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Tipo de Proveedor</label>
-                                <select class="lilis-form-control" name="tipo_proveedor">
+                                <select class="lilis-form-control" id="proveedorTipo" name="tipo_proveedor">
+                                    <option value="">Seleccionar...</option>
                                     <option value="distribuidor">Distribuidor</option>
                                     <option value="fabricante">Fabricante</option>
                                     <option value="mayorista">Mayorista</option>
-                                    <option value="minorista">Minorista</option>
+                                    <option value="importador">Importador</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Condiciones de Pago</label>
-                                <select class="lilis-form-control" name="condiciones_pago">
+                                <select class="lilis-form-control" id="proveedorCondicionesPago" name="condiciones_pago">
+                                    <option value="">Seleccionar...</option>
                                     <option value="contado">Contado</option>
                                     <option value="credito_15">Crédito 15 días</option>
                                     <option value="credito_30">Crédito 30 días</option>
                                     <option value="credito_45">Crédito 45 días</option>
                                     <option value="credito_60">Crédito 60 días</option>
+                                    <option value="credito_90">Crédito 90 días</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="lilis-form-label">Tiempo de Entrega (días)</label>
-                                <input type="number" class="lilis-form-control" name="tiempo_entrega" min="1" max="365">
+                                <input type="number" class="lilis-form-control" id="proveedorTiempoEntrega" name="tiempo_entrega" min="1" max="365" placeholder="Días hábiles">
                             </div>
                             <div class="col-md-6">
-                                <label class="lilis-form-label">Monto Mínimo de Pedido</label>
-                                <input type="number" step="0.01" class="lilis-form-control" name="monto_minimo">
+                                <label class="lilis-form-label">Monto Mínimo de Pedido (CLP)</label>
+                                <input type="number" step="1" class="lilis-form-control" id="proveedorMontoMinimo" name="monto_minimo" min="0" placeholder="Pesos chilenos">
                             </div>
                         </div>
                     </div>
@@ -453,18 +621,352 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     let currentStep = 1;
     const totalSteps = 3;
     
+    // Función para obtener el CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
     // Provider Management Functions
     function viewProvider(providerId) {
-        LilisSystem.showAlert(`Viendo detalles del proveedor ${providerId}`, 'info');
+        // Mostrar loading
+        Swal.fire({
+            title: 'Cargando detalles...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Obtener datos del proveedor
+        fetch(`/dashboard/proveedores/obtener/${providerId}/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            Swal.close();
+            
+            if (data.success) {
+                const proveedor = data.proveedor;
+                
+                // Crear lista de productos
+                let productosHtml = '';
+                if (proveedor.productos_detalle && proveedor.productos_detalle.length > 0) {
+                    productosHtml = `
+                        <div class="mt-4 pt-3 border-top">
+                            <h6 class="text-primary mb-3">
+                                📦 Productos que Suministra
+                                <span class="badge bg-primary ms-2">${proveedor.productos_detalle.length}</span>
+                            </h6>
+                            <div class="d-flex flex-wrap gap-2">
+                    `;
+                    proveedor.productos_detalle.forEach(producto => {
+                        productosHtml += `
+                            <span class="badge bg-primary" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
+                                ✓ ${producto.nombre}
+                            </span>
+                        `;
+                    });
+                    productosHtml += `
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    productosHtml = `
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="alert alert-info mb-0">
+                                ℹ️ Sin productos asociados actualmente
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Mostrar detalles en SweetAlert
+                Swal.fire({
+                    title: '🏢 ' + proveedor.nombre,
+                    html: `
+                        <div class="text-start mt-4">
+                            <div class="mb-3 text-muted small">
+                                ID del Proveedor: <strong>#${proveedor.id}</strong>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="card border-0 shadow-sm h-100 bg-light">
+                                        <div class="card-body">
+                                            <h6 class="text-primary mb-2">👤 Contacto</h6>
+                                            <p class="mb-0 fw-semibold">${proveedor.contacto || '<span class="text-muted">Sin contacto</span>'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card border-0 shadow-sm h-100 bg-light">
+                                        <div class="card-body">
+                                            <h6 class="text-success mb-2">📍 Dirección</h6>
+                                            <p class="mb-0 fw-semibold">${proveedor.direccion || '<span class="text-muted">Sin dirección</span>'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card border-0 shadow-sm h-100 bg-light">
+                                        <div class="card-body">
+                                            <h6 class="text-info mb-2">🏘️ Comuna</h6>
+                                            <p class="mb-0 fw-semibold">${proveedor.comuna || '<span class="text-muted">No especificada</span>'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="card border-0 shadow-sm h-100 bg-light">
+                                        <div class="card-body">
+                                            <h6 class="text-warning mb-2">🚩 Región</h6>
+                                            <p class="mb-0 fw-semibold">${proveedor.region || '<span class="text-muted">No especificada</span>'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${productosHtml}
+                        </div>
+                    `,
+                    confirmButtonText: '✕ Cerrar',
+                    confirmButtonColor: '#4f81f7',
+                    width: '800px',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg'
+                    }
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'No se pudieron cargar los detalles',
+                    confirmButtonColor: 'var(--lilis-blue)'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.close();
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al cargar los detalles del proveedor',
+                confirmButtonColor: 'var(--lilis-blue)'
+            });
+        });
     }
     
     function editProvider(providerId) {
-        LilisSystem.showAlert(`Editando proveedor ${providerId}`, 'info');
-        // Aquí cargarías los datos del proveedor en el modal
+        // Mostrar loading
+        Swal.fire({
+            title: 'Cargando datos...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Obtener datos del proveedor
+        fetch(`/dashboard/proveedores/obtener/${providerId}/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            Swal.close();
+            
+            if (data.success) {
+                const proveedor = data.proveedor;
+                
+                // Llenar el formulario con los datos
+                document.getElementById('proveedorId').value = proveedor.id;
+                document.getElementById('proveedorNombre').value = proveedor.nombre;
+                document.getElementById('proveedorContacto').value = proveedor.contacto || '';
+                document.getElementById('proveedorDireccion').value = proveedor.direccion || '';
+                document.getElementById('proveedorComuna').value = proveedor.comuna || '';
+                document.getElementById('proveedorRegion').value = proveedor.region || '';
+                
+                // Desmarcar todos los checkboxes primero
+                document.querySelectorAll('input[name="productos[]"]').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // Marcar los productos asociados
+                if (proveedor.productos && proveedor.productos.length > 0) {
+                    proveedor.productos.forEach(productoId => {
+                        const checkbox = document.querySelector(`input[name="productos[]"][value="${productoId}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    });
+                }
+                
+                // Cambiar título del modal
+                document.getElementById('modalTitle').textContent = 'Editar Proveedor';
+                
+                // Mostrar modal
+                const modal = new bootstrap.Modal(document.getElementById('providerModal'));
+                modal.show();
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'No se pudieron cargar los datos',
+                    confirmButtonColor: 'var(--lilis-blue)'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.close();
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al cargar los datos del proveedor',
+                confirmButtonColor: 'var(--lilis-blue)'
+            });
+        });
+    }
+    
+    function submitProvider() {
+        const form = document.getElementById('providerForm');
+        const formData = new FormData(form);
+        
+        // Validar solo campos mínimos requeridos del modelo actual
+        const nombre = formData.get('nombre');
+        const contacto = formData.get('contacto');
+        const direccion = formData.get('direccion');
+        
+        if (!nombre || !nombre.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo requerido',
+                text: 'El nombre del proveedor es requerido',
+                confirmButtonColor: 'var(--lilis-blue)'
+            });
+            document.getElementById('proveedorNombre').focus();
+            currentStep = 1;
+            updateStepDisplay();
+            return;
+        }
+        
+        if (!contacto || !contacto.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo requerido',
+                text: 'El contacto es requerido',
+                confirmButtonColor: 'var(--lilis-blue)'
+            });
+            document.getElementById('proveedorContacto').focus();
+            currentStep = 1;
+            updateStepDisplay();
+            return;
+        }
+        
+        if (!direccion || !direccion.trim()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo requerido',
+                text: 'La dirección es requerida',
+                confirmButtonColor: 'var(--lilis-blue)'
+            });
+            document.getElementById('proveedorDireccion').focus();
+            currentStep = 2;
+            updateStepDisplay();
+            return;
+        }
+        
+        // Mostrar loading
+        Swal.fire({
+            title: 'Guardando...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Enviar datos
+        fetch('/dashboard/proveedores/guardar/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            Swal.close();
+            
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: data.message,
+                    confirmButtonColor: 'var(--lilis-blue)'
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Error al guardar el proveedor',
+                    confirmButtonColor: 'var(--lilis-blue)'
+                });
+            }
+        })
+        .catch(error => {
+            Swal.close();
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al procesar la solicitud',
+                confirmButtonColor: 'var(--lilis-blue)'
+            });
+        });
     }
     
     // Step Navigation Functions
@@ -512,19 +1014,23 @@
         const nextBtn = document.getElementById('nextStepBtn');
         const submitBtn = document.getElementById('submitBtn');
         
-        prevBtn.style.display = currentStep === 1 ? 'none' : 'block';
-        
-        if (currentStep === totalSteps) {
-            nextBtn.style.display = 'none';
-            submitBtn.style.display = 'block';
-        } else {
-            nextBtn.style.display = 'block';
-            submitBtn.style.display = 'none';
+        if (prevBtn && nextBtn && submitBtn) {
+            prevBtn.style.display = currentStep === 1 ? 'none' : 'block';
+            
+            if (currentStep === totalSteps) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'block';
+            } else {
+                nextBtn.style.display = 'block';
+                submitBtn.style.display = 'none';
+            }
         }
     }
     
     function validateCurrentStep() {
         const currentStepContent = document.querySelector(`.step-content[data-step="${currentStep}"]`);
+        if (!currentStepContent) return true;
+        
         const requiredFields = currentStepContent.querySelectorAll('[required]');
         let isValid = true;
         
@@ -538,78 +1044,164 @@
         });
         
         if (!isValid) {
-            LilisSystem.showAlert('Por favor completa todos los campos requeridos', 'warning');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos incompletos',
+                text: 'Por favor completa todos los campos requeridos',
+                confirmButtonColor: 'var(--lilis-blue)'
+            });
         }
         
         return isValid;
     }
     
-    function submitProvider() {
-        if (validateCurrentStep()) {
-            const formData = new FormData(document.getElementById('providerForm'));
-            
-            LilisSystem.showAlert('Guardando proveedor...', 'info');
-            
-            // Simular guardado
-            setTimeout(() => {
-                LilisSystem.showAlert('Proveedor guardado exitosamente', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('providerModal')).hide();
-                resetProviderForm();
-            }, 1500);
-        }
-    }
-    
     function resetProviderForm() {
         currentStep = 1;
         document.getElementById('providerForm').reset();
+        document.getElementById('proveedorId').value = '';
+        document.getElementById('modalTitle').textContent = 'Nuevo Proveedor';
         document.querySelectorAll('.is-invalid').forEach(field => {
             field.classList.remove('is-invalid');
+        });
+        // Desmarcar todos los productos
+        document.querySelectorAll('input[name="productos[]"]').forEach(checkbox => {
+            checkbox.checked = false;
         });
         updateStepDisplay();
     }
     
-    // Filter Functions
-    function filterProviders() {
-        const searchTerm = document.getElementById('searchProvider').value.toLowerCase();
-        const cityFilter = document.getElementById('filterCity').value;
-        const typeFilter = document.getElementById('filterType').value;
-        const statusFilter = document.getElementById('filterStatus').value;
+    // Pagination and Sort Functions
+    function changePerPage(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', value);
+        url.searchParams.set('page', '1'); // Reset to first page
+        window.location.href = url.toString();
+    }
+    
+    function changeOrderBy(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('order_by', value);
+        url.searchParams.set('page', '1'); // Reset to first page
+        window.location.href = url.toString();
+    }
+    
+    function toggleOrderDirection() {
+        const url = new URL(window.location.href);
+        const currentDirection = url.searchParams.get('order_direction') || 'asc';
+        const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+        url.searchParams.set('order_direction', newDirection);
+        url.searchParams.set('page', '1'); // Reset to first page
+        window.location.href = url.toString();
+    }
+    
+    function sortTable(column) {
+        const url = new URL(window.location.href);
+        const currentOrderBy = url.searchParams.get('order_by') || 'id_proveedor';
+        const currentDirection = url.searchParams.get('order_direction') || 'asc';
         
-        const providerCards = document.querySelectorAll('#providersGrid > div[data-provider-id]');
+        // Si se hace clic en la misma columna, cambiar dirección
+        if (currentOrderBy === column) {
+            const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+            url.searchParams.set('order_direction', newDirection);
+        } else {
+            // Si es una columna diferente, ordenar ascendente
+            url.searchParams.set('order_by', column);
+            url.searchParams.set('order_direction', 'asc');
+        }
         
-        providerCards.forEach(card => {
-            const name = card.querySelector('h5').textContent.toLowerCase();
-            const visible = (!searchTerm || name.includes(searchTerm));
-            
-            if (visible) {
-                card.style.display = '';
-            } else {
-                card.style.display = 'none';
+        url.searchParams.set('page', '1'); // Reset to first page
+        window.location.href = url.toString();
+    }
+    
+    function deleteProvider(providerId, providerName) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            html: `¿Deseas eliminar el proveedor <strong>${providerName}</strong>?<br><small class="text-muted">Esta acción no se puede deshacer</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="bi bi-trash me-2"></i>Sí, eliminar',
+            cancelButtonText: '<i class="bi bi-x-circle me-2"></i>Cancelar',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Eliminando...',
+                    text: 'Por favor espera',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Realizar petición
+                fetch(`/dashboard/proveedores/eliminar/${providerId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Eliminado!',
+                            text: data.message || 'El proveedor ha sido eliminado correctamente',
+                            confirmButtonColor: 'var(--lilis-blue)',
+                            timer: 2000,
+                            timerProgressBar: true
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message || 'No se pudo eliminar el proveedor',
+                            confirmButtonColor: 'var(--lilis-blue)'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al eliminar el proveedor',
+                        confirmButtonColor: 'var(--lilis-blue)'
+                    });
+                });
             }
         });
     }
     
-    function exportProvidersToExcel() {
-        LilisSystem.showAlert('Exportando proveedores a Excel...', 'info');
-    }
+    // Search form submit
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchProvider');
+        
+        if (searchInput) {
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchForm.submit();
+                }, 500); // Wait 500ms after user stops typing
+            });
+        }
+    });
     
     // Event Listeners
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize step display
         updateStepDisplay();
-        
-        // Filter event listeners
-        const searchInput = document.getElementById('searchProvider');
-        if (searchInput) {
-            searchInput.addEventListener('input', filterProviders);
-        }
-        
-        ['filterCity', 'filterType', 'filterStatus'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.addEventListener('change', filterProviders);
-            }
-        });
         
         // Modal event listeners
         const modal = document.getElementById('providerModal');
@@ -617,7 +1209,7 @@
             modal.addEventListener('hidden.bs.modal', resetProviderForm);
         }
         
-        console.log('Provider management loaded');
+        console.log('Provider management loaded with pagination, search and edit functionality');
     });
 </script>
 

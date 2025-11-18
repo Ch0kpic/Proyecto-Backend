@@ -275,22 +275,6 @@
                         </div>
 
                         <div class="form-field">
-                            <label class="form-label">Contraseña</label>
-                            {{ form.password }}
-                            {% if form.password.errors %}
-                                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-field">
-                            <label class="form-label">Confirmar Contraseña</label>
-                            {{ form.confirm_password }}
-                            {% if form.confirm_password.errors %}
-                                <div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="form-field">
                             <label class="form-label">Rol</label>
                             {{ form.id_rol }}
                             {% if form.id_rol.errors %}
@@ -303,6 +287,16 @@
                                 <input type="checkbox" class="form-checkbox" name="is_active" {% if form.is_active.value %}checked{% endif %}>
                                 Estado y acceso
                             </label>
+                        </div>
+
+                        <div class="form-field">
+                            <label>
+                                <input type="checkbox" class="form-checkbox" name="forzar_cambio_contrasena" checked>
+                                Usuario debe cambiar contraseña en el primer inicio de sesión
+                            </label>
+                            <small class="text-muted d-block mt-1">
+                                Se generará una contraseña temporal automáticamente y se enviará al correo del usuario.
+                            </small>
                         </div>
 
                         <!-- Error general del formulario -->
@@ -470,14 +464,32 @@
                 // Limpiar formulario
                 this.reset();
                 
-                // Mostrar mensaje de éxito con SweetAlert2
+                // Mostrar mensaje de éxito con contraseña temporal si existe
+                let messageText = `Usuario "${data.user.nombre}" creado exitosamente`;
+                let messageHtml = messageText;
+                
+                if (data.temp_password) {
+                    messageHtml = `
+                        <p>${messageText}</p>
+                        <hr>
+                        <p class="mb-2"><strong>⚠️ Contraseña Temporal:</strong></p>
+                        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                            <code style="font-size: 18px; color: #d32f2f; font-weight: bold; letter-spacing: 2px;">${data.temp_password}</code>
+                        </div>
+                        <p class="mt-3 text-muted" style="font-size: 14px;">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Guarda esta contraseña. El usuario deberá cambiarla en su primer inicio de sesión.
+                        </p>
+                    `;
+                }
+                
                 Swal.fire({
                     icon: 'success',
                     title: 'Usuario Creado',
-                    text: `Usuario "${data.user.nombre}" creado exitosamente`,
-                    confirmButtonColor: '#dc2626',
-                    timer: 3000,
-                    timerProgressBar: true
+                    html: messageHtml,
+                    confirmButtonColor: '#1976d2',
+                    confirmButtonText: 'Entendido',
+                    width: '600px'
                 });
                 
             } else {

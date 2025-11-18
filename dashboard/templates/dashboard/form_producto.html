@@ -339,6 +339,13 @@
 
 {% block content %}
 <div class="container-fluid py-4">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{% url 'dashboard:productos' %}" class="btn btn-outline-secondary" title="Volver a productos">
+            <i class="bi bi-arrow-left me-2"></i>Volver a Productos
+        </a>
+    </div>
+
     <div class="row">
         <!-- Formulario de Producto (Lado Izquierdo) -->
         <div class="col-md-6">

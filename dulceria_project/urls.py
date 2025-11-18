@@ -20,6 +20,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from dashboard import views as dashboard_views
 
+# Handlers de errores personalizados
+handler404 = 'dashboard.views.error_404'
+handler500 = 'dashboard.views.error_500'
+handler403 = 'dashboard.views.error_403'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', dashboard_views.login_view, name='root_login'),

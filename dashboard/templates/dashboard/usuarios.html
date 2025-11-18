@@ -38,12 +38,17 @@
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="text-dark fw-bold mb-1">
-                <i class="bi bi-people-fill text-lilis-blue me-2"></i>
-                Gestión de Usuarios
-            </h2>
-            <p class="text-muted mb-0">Administra los usuarios del sistema y sus permisos</p>
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary" title="Volver al inicio">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="text-dark fw-bold mb-1">
+                    <i class="bi bi-people-fill text-lilis-blue me-2"></i>
+                    Gestión de Usuarios
+                </h2>
+                <p class="text-muted mb-0">Administra los usuarios del sistema y sus permisos</p>
+            </div>
         </div>
         <button class="btn btn-lilis-primary" data-bs-toggle="modal" data-bs-target="#userModal" onclick="openNewUserModal()">
             <i class="bi bi-person-plus me-2"></i>
@@ -55,6 +60,110 @@
     <div class="alert-container mb-3"></div>
     
     <!-- Filters Card -->
+    <div class="lilis-card mb-4">
+        <div class="lilis-card-body">
+            <h5 class="mb-3">
+                <i class="bi bi-search me-2"></i>
+                Buscar usuarios
+            </h5>
+            
+            <form method="get" id="searchForm">
+                <div class="row g-3 align-items-end">
+                    <!-- Buscador -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-filter me-1"></i>
+                            Buscar por nombre, usuario, email o correo
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" 
+                                   class="form-control" 
+                                   name="search" 
+                                   id="searchUser" 
+                                   placeholder="Escribe para buscar..."
+                                   value="{{ search }}">
+                            {% if search %}
+                            <a href="{% url 'dashboard:usuarios' %}" 
+                               class="btn btn-outline-secondary"
+                               title="Limpiar búsqueda">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Registros por página -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-list-ol me-1"></i>
+                            Registros por página
+                        </label>
+                        <select class="form-select" id="perPageSelect" onchange="changePerPage(this.value)">
+                            <option value="5" {% if per_page == 5 %}selected{% endif %}>5 registros</option>
+                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10 registros</option>
+                            <option value="15" {% if per_page == 15 %}selected{% endif %}>15 registros</option>
+                            <option value="30" {% if per_page == 30 %}selected{% endif %}>30 registros</option>
+                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50 registros</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Ordenar por -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-sort-alpha-down me-1"></i>
+                            Ordenar por
+                        </label>
+                        <select class="form-select" id="orderBySelect" onchange="changeOrderBy(this.value)">
+                            <option value="id_usuario" {% if order_by == 'id_usuario' %}selected{% endif %}>ID</option>
+                            <option value="nombre" {% if order_by == 'nombre' %}selected{% endif %}>Nombre</option>
+                            <option value="username" {% if order_by == 'username' %}selected{% endif %}>Usuario</option>
+                            <option value="email" {% if order_by == 'email' %}selected{% endif %}>Email</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Dirección de orden -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold mb-2">
+                            <i class="bi bi-arrow-down-up me-1"></i>
+                            Dirección
+                        </label>
+                        <button type="button" 
+                                class="btn w-100" 
+                                style="background: linear-gradient(135deg, var(--lilis-blue), var(--lilis-blue-hover)); color: white; font-weight: 600;"
+                                onclick="toggleOrderDirection()" 
+                                id="orderDirectionBtn">
+                            <i class="bi bi-sort-{% if order_direction == 'desc' %}down{% else %}up{% endif %} me-2"></i>
+                            {% if order_direction == 'desc' %}Descendente{% else %}Ascendente{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Información y botón exportar -->
+            <div class="row mt-4 pt-3 border-top">
+                <div class="col-md-6 d-flex align-items-center">
+                    <button class="btn btn-outline-success" onclick="exportToExcel()">
+                        <i class="bi bi-file-earmark-excel me-2"></i>
+                        Exportar a Excel
+                    </button>
+                </div>
+                <div class="col-md-6 text-end">
+                    <span class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Mostrando 
+                        <strong>{{ usuarios.start_index }}</strong> - <strong>{{ usuarios.end_index }}</strong> 
+                        de <strong>{{ usuarios.paginator.count }}</strong> usuarios
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Old Filters Card - REMOVE THIS SECTION -->
+    <!--
     <div class="lilis-card mb-4">
         <div class="lilis-card-body">
             <h5 class="card-title mb-3">
@@ -93,6 +202,7 @@
             </div>
         </div>
     </div>
+    -->
     
     <!-- Users Table -->
     <div class="lilis-card">
@@ -101,33 +211,62 @@
                 <i class="bi bi-table me-2"></i>
                 Lista de Usuarios
             </h5>
-            <div class="d-flex align-items-center">
-                <span class="badge bg-secondary me-3" id="userCount">{{ usuarios.count }} usuarios</span>
-                <button class="btn btn-outline-success btn-sm" onclick="exportToExcel()">
-                    <i class="bi bi-file-excel me-1"></i>
-                    Exportar a Excel
-                </button>
-            </div>
+            <span class="badge bg-secondary">{{ usuarios.paginator.count }} usuarios totales</span>
         </div>
         
         <div class="table-responsive">
             <table class="table table-hover mb-0" id="usersTable">
                 <thead class="table-light">
                     <tr>
-                        <th scope="col">Usuario</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Nombre</th>
-                        <th scope="col">Correo</th>
-                        <th scope="col">Teléfono</th>
-                        <th scope="col">Rol</th>
-                        <th scope="col">Estado</th>
-                        <th scope="col">Última Sesión</th>
-                        <th scope="col">Acciones</th>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('id_usuario')">
+                            <i class="bi bi-hash me-1"></i>ID
+                            {% if order_by == 'id_usuario' %}
+                                <i class="bi bi-caret-{% if order_direction == 'desc' %}down{% else %}up{% endif %}-fill"></i>
+                            {% endif %}
+                        </th>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('username')">
+                            <i class="bi bi-person me-1"></i>Usuario
+                            {% if order_by == 'username' %}
+                                <i class="bi bi-caret-{% if order_direction == 'desc' %}down{% else %}up{% endif %}-fill"></i>
+                            {% endif %}
+                        </th>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('nombre')">
+                            <i class="bi bi-person-badge me-1"></i>Nombre
+                            {% if order_by == 'nombre' %}
+                                <i class="bi bi-caret-{% if order_direction == 'desc' %}down{% else %}up{% endif %}-fill"></i>
+                            {% endif %}
+                        </th>
+                        <th scope="col" style="cursor: pointer;" onclick="sortTable('email')">
+                            <i class="bi bi-envelope me-1"></i>Email
+                            {% if order_by == 'email' %}
+                                <i class="bi bi-caret-{% if order_direction == 'desc' %}down{% else %}up{% endif %}-fill"></i>
+                            {% endif %}
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-telephone me-1"></i>Teléfono
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-shield me-1"></i>Rol
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-circle-fill me-1"></i>Estado
+                        </th>
+                        <th scope="col">
+                            <i class="bi bi-clock me-1"></i>Última Sesión
+                        </th>
+                        <th scope="col" class="text-center">
+                            <i class="bi bi-gear me-1"></i>Acciones
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for usuario in usuarios %}
                     <tr data-user-id="{{ usuario.id_usuario }}">
+                        <td>
+                            <span class="badge" style="background: linear-gradient(135deg, var(--lilis-blue), var(--lilis-blue-hover)); font-size: 0.9rem;">
+                                #{{ usuario.id_usuario }}
+                            </span>
+                        </td>
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="avatar-circle me-2" style="width: 32px; height: 32px; background: var(--lilis-blue-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--lilis-blue); font-weight: 600; font-size: 0.8rem;">
@@ -136,9 +275,8 @@
                                 <strong>{{ usuario.username }}</strong>
                             </div>
                         </td>
-                        <td>{{ usuario.email }}</td>
                         <td>{{ usuario.nombre }}</td>
-                        <td>{{ usuario.correo }}</td>
+                        <td>{{ usuario.email }}</td>
                         <td>{{ usuario.telefono|default:'-' }}</td>
                         <td>
                             <span class="lilis-badge lilis-badge-info">{{ usuario.id_rol.nombre }}</span>
@@ -162,33 +300,118 @@
                                 <button class="btn btn-outline-primary btn-sm" onclick="editUser('{{ usuario.id_usuario }}')" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                {% if usuario.is_active %}
-                                    <button class="btn btn-outline-warning btn-sm" onclick="toggleUserStatus('{{ usuario.id_usuario }}', false)" title="Desactivar">
-                                        <i class="bi bi-pause-circle"></i>
+                                {% if usuario.username == 'admin' or usuario.is_superuser %}
+                                    <!-- Admin principal no puede ser desactivado ni eliminado -->
+                                    <button class="btn btn-outline-secondary btn-sm" disabled title="Este usuario no puede ser modificado">
+                                        <i class="bi bi-shield-lock"></i>
                                     </button>
                                 {% else %}
-                                    <button class="btn btn-outline-success btn-sm" onclick="toggleUserStatus('{{ usuario.id_usuario }}', true)" title="Activar">
-                                        <i class="bi bi-play-circle"></i>
+                                    {% if usuario.is_active %}
+                                        <button class="btn btn-outline-warning btn-sm" onclick="toggleUserStatus('{{ usuario.id_usuario }}', false)" title="Desactivar">
+                                            <i class="bi bi-pause-circle"></i>
+                                        </button>
+                                    {% else %}
+                                        <button class="btn btn-outline-success btn-sm" onclick="toggleUserStatus('{{ usuario.id_usuario }}', true)" title="Activar">
+                                            <i class="bi bi-play-circle"></i>
+                                        </button>
+                                    {% endif %}
+                                    <button class="btn btn-lilis-danger btn-sm" onclick="deleteUser('{{ usuario.id_usuario }}')" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 {% endif %}
-                                <button class="btn btn-lilis-danger btn-sm" onclick="deleteUser('{{ usuario.id_usuario }}')" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
                             </div>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="text-center py-4">
+                        <td colspan="9" class="text-center py-5">
                             <div class="text-muted">
                                 <i class="bi bi-people display-4 d-block mb-3" style="color: var(--lilis-gray-300);"></i>
-                                No se encontraron usuarios
+                                {% if search %}
+                                    <p class="mb-3">No se encontraron usuarios que coincidan con "{{ search }}"</p>
+                                    <a href="{% url 'dashboard:usuarios' %}" class="btn btn-lilis-primary">
+                                        <i class="bi bi-arrow-left me-2"></i>
+                                        Ver todos los usuarios
+                                    </a>
+                                {% else %}
+                                    <p class="mb-3">No hay usuarios registrados</p>
+                                    <button class="btn btn-lilis-primary" data-bs-toggle="modal" data-bs-target="#userModal" onclick="openNewUserModal()">
+                                        <i class="bi bi-person-plus me-2"></i>
+                                        Crear primer usuario
+                                    </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        
+        <!-- Paginación -->
+        <div class="card-footer bg-light">
+            <nav aria-label="Paginación de usuarios">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if usuarios.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Primera página">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ usuarios.previous_page_number }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Página anterior">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in usuarios.paginator.page_range %}
+                        {% if usuarios.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link" style="background: linear-gradient(135deg, var(--lilis-blue), var(--lilis-blue-hover)); border-color: var(--lilis-blue);">{{ num }}</span>
+                            </li>
+                        {% elif num > usuarios.number|add:'-3' and num < usuarios.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if usuarios.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ usuarios.next_page_number }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Página siguiente">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ usuarios.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}&per_page={{ per_page }}&order_by={{ order_by }}&order_direction={{ order_direction }}" title="Última página">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            
+            <!-- Info de paginación -->
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    Página {{ usuarios.number }} de {{ usuarios.paginator.num_pages }}
+                </small>
+            </div>
         </div>
     </div>
 </div>
@@ -216,23 +439,52 @@
                     </h6>
                     
                     <div class="row g-3 mb-4">
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="form-floating">
-                                <input type="text" class="form-control" id="usuario" name="usuario" placeholder="Usuario" required autocomplete="username">
-                                <label for="usuario">Usuario <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="nombre" 
+                                       name="nombre" 
+                                       placeholder="Nombre" 
+                                       required 
+                                       autocomplete="name"
+                                       maxlength="100"
+                                       minlength="3"
+                                       pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                                       title="Solo letras y espacios (3-100 caracteres)">
+                                <label for="nombre">Nombre Completo <span class="text-danger">*</span></label>
+                                <div class="form-text">Solo letras y espacios (mínimo 3, máximo 100 caracteres)</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="email" class="form-control" id="email" name="email" placeholder="Email" required autocomplete="email">
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email" 
+                                       placeholder="Email" 
+                                       required 
+                                       autocomplete="email"
+                                       maxlength="150"
+                                       pattern="[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}"
+                                       title="Ingresa un email válido (ej: usuario@dominio.com)">
                                 <label for="email">Email <span class="text-danger">*</span></label>
+                                <div class="form-text">Ejemplo: usuario@gmail.com (máximo 150 caracteres)</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-floating">
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña" autocomplete="new-password">
-                                <label for="password">Contraseña <span class="text-danger" id="passwordRequired">*</span></label>
-                                <div class="form-text">Dejar vacío para mantener la contraseña actual</div>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="telefono" 
+                                       name="telefono" 
+                                       placeholder="Teléfono" 
+                                       autocomplete="tel"
+                                       maxlength="15"
+                                       pattern="[\d\s\-\+]+"
+                                       title="Solo números, espacios, guiones y +">
+                                <label for="telefono">Teléfono</label>
+                                <div class="form-text">Formato: +56 9 1234 5678 (máximo 15 caracteres)</div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -244,6 +496,13 @@
                                     {% endfor %}
                                 </select>
                                 <label for="id_rol">Rol <span class="text-danger">*</span></label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Contraseña Temporal:</strong> Se generará automáticamente una contraseña segura. 
+                                El usuario deberá cambiarla en su primer inicio de sesión.
                             </div>
                         </div>
                     </div>
@@ -342,8 +601,6 @@
         isEditMode = false;
         document.getElementById('userModalLabel').innerHTML = '<i class="bi bi-person-plus me-2"></i>Nuevo Usuario';
         document.getElementById('submitButtonText').textContent = 'Crear Usuario';
-        document.getElementById('passwordRequired').style.display = 'inline';
-        document.getElementById('password').required = true;
         document.getElementById('userForm').reset();
         document.getElementById('userId').value = '';
         document.getElementById('activo').checked = true;
@@ -354,8 +611,6 @@
         isEditMode = true;
         document.getElementById('userModalLabel').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar Usuario';
         document.getElementById('submitButtonText').textContent = 'Actualizar Usuario';
-        document.getElementById('passwordRequired').style.display = 'none';
-        document.getElementById('password').required = false;
         
         // Cargar los datos del usuario via AJAX
         loadUserData(userId);
@@ -412,16 +667,11 @@
                 
                 // Llenar los campos del formulario
                 document.getElementById('userId').value = usuario.id;
-                document.getElementById('usuario').value = usuario.usuario;
-                document.getElementById('email').value = usuario.email;
                 document.getElementById('nombre').value = usuario.nombre;
-                document.getElementById('telefono').value = usuario.telefono;
+                document.getElementById('email').value = usuario.email;
+                document.getElementById('telefono').value = usuario.telefono || '';
                 document.getElementById('id_rol').value = usuario.id_rol;
                 document.getElementById('activo').checked = usuario.is_active;
-                document.getElementById('cambiar_password').checked = usuario.cambiar_password;
-                
-                // Limpiar campo de contraseña
-                document.getElementById('password').value = '';
             } else {
                 console.error('Error en respuesta:', data);
                 Swal.fire({
@@ -564,133 +814,221 @@
         });
     }
     
-    // Search and Filter Functions
-    function clearFilters() {
-        document.getElementById('searchName').value = '';
-        document.getElementById('filterRole').value = '';
-        document.getElementById('filterStatus').value = '';
-        filterTable();
-    }
-    
-    function filterTable() {
-        const searchName = document.getElementById('searchName').value.toLowerCase();
-        const filterRole = document.getElementById('filterRole').value;
-        const filterStatus = document.getElementById('filterStatus').value;
-        
-        const rows = document.querySelectorAll('#usersTable tbody tr');
-        let visibleCount = 0;
-        
-        rows.forEach(row => {
-            if (row.cells.length === 1) return; // Skip empty row
-            
-            const name = row.cells[2].textContent.toLowerCase() + ' ' + row.cells[3].textContent.toLowerCase();
-            const role = row.cells[5].textContent.trim();
-            const status = row.cells[6].textContent.trim();
-            
-            const matchName = !searchName || name.includes(searchName);
-            const matchRole = !filterRole || role === filterRole;
-            const matchStatus = !filterStatus || status === filterStatus;
-            
-            if (matchName && matchRole && matchStatus) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-        
-        document.getElementById('userCount').textContent = `${visibleCount} usuarios`;
-    }
-    
-    // Export function
-    function exportToExcel() {
-        Swal.fire({
-            title: 'Exportando a Excel...',
-            text: 'Generando archivo de usuarios...',
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            willOpen: () => {
-                Swal.showLoading();
-            }
-        });
-        
-        // Descargar archivo
-        const url = '{% url "dashboard:exportar_usuarios_excel" %}';
-        window.location.href = url;
-        
-        // Cerrar loading después de un momento
-        setTimeout(() => {
-            Swal.close();
-            Swal.fire({
-                icon: 'success',
-                title: '¡Exportado!',
-                text: 'El archivo se está descargando',
-                confirmButtonColor: '#dc2626',
-                timer: 2000
-            });
-        }, 1000);
-    }
-    
     // Form submission
     document.getElementById('userForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
         // Validaciones
-        const usuario = document.getElementById('usuario').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
         const nombre = document.getElementById('nombre').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
         const rol = document.getElementById('id_rol').value;
         
-        // Debug
-        console.log('Validando formulario:', {usuario, email, nombre, rol, password: password ? '***' : ''});
-        
-        // Validar campos requeridos (teléfono no es requerido)
-        if (!usuario || !email || !nombre || !rol) {
+        // Validar campos requeridos
+        if (!nombre) {
             Swal.fire({
                 icon: 'error',
-                title: 'Campos incompletos',
-                text: 'Por favor completa todos los campos requeridos (Usuario, Email, Nombre y Rol)',
+                title: 'Nombre requerido',
+                text: 'Por favor ingresa el nombre completo del usuario',
                 confirmButtonColor: '#dc2626'
             });
+            document.getElementById('nombre').focus();
+            return;
+        }
+        
+        if (!email) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Email requerido',
+                text: 'Por favor ingresa el correo electrónico',
+                confirmButtonColor: '#dc2626'
+            });
+            document.getElementById('email').focus();
+            return;
+        }
+        
+        if (!rol) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Rol requerido',
+                text: 'Por favor selecciona un rol para el usuario',
+                confirmButtonColor: '#dc2626'
+            });
+            document.getElementById('id_rol').focus();
+            return;
+        }
+        
+        // Validar longitud del nombre
+        if (nombre.length < 3) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Nombre muy corto',
+                text: 'El nombre debe tener al menos 3 caracteres',
+                confirmButtonColor: '#dc2626'
+            });
+            document.getElementById('nombre').focus();
+            return;
+        }
+        
+        if (nombre.length > 100) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Nombre muy largo',
+                text: 'El nombre no puede exceder 100 caracteres',
+                confirmButtonColor: '#dc2626'
+            });
+            document.getElementById('nombre').focus();
+            return;
+        }
+        
+        // Validar formato del nombre
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Nombre no válido',
+                text: 'El nombre solo puede contener letras y espacios. No se permiten números ni caracteres especiales.',
+                confirmButtonColor: '#dc2626'
+            });
+            document.getElementById('nombre').focus();
             return;
         }
         
         // Validar email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailRegex = /^[a-zA-Z0-9][a-zA-Z0-9._%+-]*@[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(email)) {
             Swal.fire({
                 icon: 'error',
-                title: 'Email inválido',
-                text: 'Por favor ingresa un email válido',
+                title: 'Correo no válido',
+                text: 'Por favor ingresa un correo electrónico válido. Ejemplo: usuario@gmail.com',
                 confirmButtonColor: '#dc2626'
             });
+            document.getElementById('email').focus();
             return;
         }
         
-        // Validar contraseña en modo creación
-        if (!isEditMode && password.length < 8) {
+        // Validar que no tenga puntos consecutivos
+        if (email.includes('..')) {
             Swal.fire({
                 icon: 'error',
-                title: 'Contraseña débil',
-                text: 'La contraseña debe tener al menos 8 caracteres',
+                title: 'Correo no válido',
+                text: 'El correo electrónico no puede contener puntos consecutivos (..)',
                 confirmButtonColor: '#dc2626'
             });
+            document.getElementById('email').focus();
             return;
         }
         
-        // Validar contraseña si se ingresó en modo edición
-        if (isEditMode && password && password.length < 8) {
+        // Validar que el dominio tenga formato correcto
+        if (email.includes('@')) {
+            const parts = email.split('@');
+            if (parts.length !== 2 || !parts[0] || !parts[1]) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Correo no válido',
+                    text: 'El correo debe tener el formato: usuario@dominio.com',
+                    confirmButtonColor: '#dc2626'
+                });
+                document.getElementById('email').focus();
+                return;
+            }
+            
+            const domain = parts[1];
+            if (!domain.includes('.')) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Correo no válido',
+                    text: 'El dominio del correo debe incluir un punto. Ejemplo: gmail.com, hotmail.com',
+                    confirmButtonColor: '#dc2626'
+                });
+                document.getElementById('email').focus();
+                return;
+            }
+            
+            // Verificar errores tipográficos comunes
+            const commonTypos = {
+                'gmial.com': 'gmail.com',
+                'gmai.com': 'gmail.com',
+                'hotmial.com': 'hotmail.com',
+                'yahooo.com': 'yahoo.com',
+                'outlok.com': 'outlook.com'
+            };
+            
+            if (commonTypos[domain.toLowerCase()]) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Correo con error tipográfico',
+                    text: `¿Quisiste decir ${parts[0]}@${commonTypos[domain.toLowerCase()]}?`,
+                    confirmButtonColor: '#dc2626'
+                });
+                document.getElementById('email').focus();
+                return;
+            }
+        }
+        
+        // Validar longitud del email
+        if (email.length > 150) {
             Swal.fire({
                 icon: 'error',
-                title: 'Contraseña débil',
-                text: 'La contraseña debe tener al menos 8 caracteres',
+                title: 'Correo muy largo',
+                text: 'El correo electrónico no puede exceder 150 caracteres',
                 confirmButtonColor: '#dc2626'
             });
+            document.getElementById('email').focus();
             return;
+        }
+        
+        // Validar teléfono si se ingresó
+        if (telefono) {
+            if (telefono.length > 15) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Teléfono no válido',
+                    text: 'El teléfono no puede exceder 15 caracteres',
+                    confirmButtonColor: '#dc2626'
+                });
+                document.getElementById('telefono').focus();
+                return;
+            }
+            
+            if (!/^[\d\s\-\+]+$/.test(telefono)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Teléfono no válido',
+                    text: 'El teléfono solo puede contener números, espacios, guiones (-) y el signo más (+)',
+                    confirmButtonColor: '#dc2626'
+                });
+                document.getElementById('telefono').focus();
+                return;
+            }
+            
+            const digitos = telefono.replace(/[^\d]/g, '');
+            if (digitos.length < 7) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Teléfono no válido',
+                    text: 'El teléfono debe tener al menos 7 dígitos',
+                    confirmButtonColor: '#dc2626'
+                });
+                document.getElementById('telefono').focus();
+                return;
+            }
         }
         
         const formData = new FormData(this);
+        
+        // Asegurarse de que el checkbox activo se envíe correctamente
+        if (document.getElementById('activo').checked) {
+            formData.set('activo', 'on');
+        } else {
+            formData.set('activo', 'off');
+        }
+        
+        // Debug: Ver qué se está enviando
+        console.log('Datos del formulario:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        
         const action = isEditMode ? 'actualizado' : 'creado';
         const url = '{% url "dashboard:guardar_usuario" %}';
         
@@ -718,23 +1056,80 @@
         .then(data => {
             if (data.success) {
                 bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
-                Swal.fire({
-                    icon: 'success',
-                    title: `¡Usuario ${action}!`,
-                    text: `El usuario ha sido ${action} correctamente`,
-                    confirmButtonColor: '#dc2626',
-                    timer: 2000
-                }).then(() => {
-                    location.reload();
-                });
+                
+                // Si es un usuario nuevo y tiene contraseña temporal, mostrarla
+                if (data.temp_password) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Usuario Creado!',
+                        html: `
+                            <p>${data.message || 'El usuario ha sido creado correctamente'}</p>
+                            <hr>
+                            <p class="mb-2"><strong>⚠️ Contraseña Temporal:</strong></p>
+                            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                                <code style="font-size: 18px; color: #d32f2f; font-weight: bold; letter-spacing: 2px;">${data.temp_password}</code>
+                            </div>
+                            <p class="mt-3 text-muted" style="font-size: 14px;">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Guarda esta contraseña. El usuario deberá cambiarla en su primer inicio de sesión.
+                            </p>
+                        `,
+                        confirmButtonColor: '#1976d2',
+                        confirmButtonText: 'Entendido',
+                        width: '600px'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: `¡Usuario ${action}!`,
+                        text: data.message || `El usuario ha sido ${action} correctamente`,
+                        confirmButtonColor: '#dc2626',
+                        timer: 2000
+                    }).then(() => {
+                        location.reload();
+                    });
+                }
             } else {
                 let errorMessage = 'Por favor verifica los datos ingresados';
+                let errorTitle = 'Error al guardar';
+                
                 if (data.errors) {
-                    errorMessage = Object.values(data.errors).flat().join('\n');
+                    // Mostrar el primer error encontrado
+                    const firstErrorKey = Object.keys(data.errors)[0];
+                    const firstError = data.errors[firstErrorKey];
+                    
+                    if (Array.isArray(firstError)) {
+                        errorMessage = firstError[0];
+                    } else {
+                        errorMessage = firstError;
+                    }
+                    
+                    // Títulos específicos según el campo
+                    const errorTitles = {
+                        'email': 'Correo no válido',
+                        'nombre': 'Nombre no válido',
+                        'password': 'Contraseña no válida',
+                        'telefono': 'Teléfono no válido',
+                        'id_rol': 'Rol no válido',
+                        'general': 'Error al guardar'
+                    };
+                    
+                    errorTitle = errorTitles[firstErrorKey] || 'Error al guardar';
+                    
+                    // Enfocar el campo con error
+                    const fieldElement = document.getElementById(firstErrorKey);
+                    if (fieldElement) {
+                        fieldElement.focus();
+                    }
+                } else if (data.message) {
+                    errorMessage = data.message;
                 }
+                
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error al guardar',
+                    title: errorTitle,
                     text: errorMessage,
                     confirmButtonColor: '#dc2626'
                 });
@@ -751,14 +1146,84 @@
         });
     });
     
-    // Event listeners for filters
-    document.getElementById('searchName').addEventListener('input', filterTable);
-    document.getElementById('filterRole').addEventListener('change', filterTable);
-    document.getElementById('filterStatus').addEventListener('change', filterTable);
+    // ============================================
+    // Funciones de búsqueda, paginación y ordenamiento
+    // ============================================
+    
+    // Cambiar cantidad de registros por página
+    function changePerPage(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', value);
+        url.searchParams.set('page', '1'); // Resetear a primera página
+        window.location.href = url.toString();
+    }
+    
+    // Cambiar campo de ordenamiento
+    function changeOrderBy(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('order_by', value);
+        url.searchParams.set('page', '1'); // Resetear a primera página
+        window.location.href = url.toString();
+    }
+    
+    // Alternar dirección de ordenamiento
+    function toggleOrderDirection() {
+        const url = new URL(window.location.href);
+        const currentDirection = url.searchParams.get('order_direction') || 'asc';
+        const newDirection = currentDirection === 'desc' ? 'asc' : 'desc';
+        url.searchParams.set('order_direction', newDirection);
+        url.searchParams.set('page', '1'); // Resetear a primera página
+        window.location.href = url.toString();
+    }
+    
+    // Ordenar tabla al hacer clic en encabezado
+    function sortTable(field) {
+        const url = new URL(window.location.href);
+        const currentField = url.searchParams.get('order_by') || 'id_usuario';
+        const currentDirection = url.searchParams.get('order_direction') || 'asc';
+        
+        // Si es el mismo campo, alternar dirección
+        if (currentField === field) {
+            const newDirection = currentDirection === 'desc' ? 'asc' : 'desc';
+            url.searchParams.set('order_direction', newDirection);
+        } else {
+            // Nuevo campo, ordenar ascendente por defecto
+            url.searchParams.set('order_by', field);
+            url.searchParams.set('order_direction', 'asc');
+        }
+        
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    }
+    
+    // Exportar a Excel
+    function exportToExcel() {
+        Swal.fire({
+            icon: 'info',
+            title: 'Función en desarrollo',
+            text: 'La exportación a Excel estará disponible próximamente',
+            confirmButtonColor: 'var(--lilis-blue)'
+        });
+    }
+    
+    // Event listener para búsqueda en tiempo real (con debounce)
+    let searchTimeout;
+    const searchInput = document.getElementById('searchUser');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const form = document.getElementById('searchForm');
+                if (form) {
+                    form.submit();
+                }
+            }, 500); // Esperar 500ms después de que el usuario deje de escribir
+        });
+    }
     
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Usuario management loaded');
+        console.log('Usuario management with pagination loaded');
     });
 </script>
 {% endblock %}

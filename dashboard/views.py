@@ -32,6 +32,12 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            
+            # Verificar si el usuario debe cambiar su contraseña
+            if hasattr(user, 'forzar_cambio_contrasena') and user.forzar_cambio_contrasena:
+                # Redirigir a la página de cambio de contraseña obligatorio
+                return redirect('dashboard:cambiar_contrasena_obligatorio')
+            
             return redirect('dashboard:home')
         else:
             messages.error(request, 'Usuario o contraseña incorrectos')
@@ -177,41 +183,382 @@ def inventarios_view(request):
 
 @login_required
 def proveedores_view(request):
-    """Vista ficticia de proveedores"""
+    """Vista de gestión de proveedores"""
     user = request.user
     
     # Solo administradores pueden acceder
     if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre == 'Administrador')):
         raise PermissionDenied("No tienes permisos para acceder a esta sección")
     
-    # Datos ficticios para proveedores
-    class MockProveedor:
-        def __init__(self, id_proveedor, nombre, contacto, telefono, email):
-            self.id_proveedor = id_proveedor
-            self.nombre = nombre
-            self.contacto = contacto
-            self.telefono = telefono
-            self.email = email
+    from proveedores.models import Proveedor
+    from django.db.models import Q
     
-    proveedores = [
-        MockProveedor(1, 'Distribuidora Nacional', 'Juan Pérez', '123-456-7890', 'contacto@distrinacional.com'),
-        MockProveedor(2, 'Dulces Premium SAC', 'María García', '098-765-4321', 'ventas@dulcespremium.com'),
-        MockProveedor(3, 'Confitería del Norte', 'Carlos López', '555-123-4567', 'info@confiterianorte.com'),
-    ]
+    # Obtener parámetros de búsqueda y filtro
+    search = request.GET.get('search', '')
+    per_page = request.GET.get('per_page', request.session.get('proveedores_per_page', 10))
+    order_by = request.GET.get('order_by', 'id_proveedor')
+    order_direction = request.GET.get('order_direction', 'asc')
+    
+    # Guardar per_page en sesión
+    request.session['proveedores_per_page'] = int(per_page)
+    
+    # Obtener proveedores
+    proveedores = Proveedor.objects.all()
+    
+    # Aplicar búsqueda
+    if search:
+        proveedores = proveedores.filter(
+            Q(nombre__icontains=search) |
+            Q(contacto__icontains=search) |
+            Q(direccion__icontains=search)
+        )
+    
+    # Aplicar ordenamiento
+    order_field = order_by if order_direction == 'asc' else f'-{order_by}'
+    proveedores = proveedores.order_by(order_field)
+    
+    # Aplicar paginación
+    paginator = Paginator(proveedores, per_page)
+    page_number = request.GET.get('page', 1)
+    
+    try:
+        proveedores_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        proveedores_page = paginator.page(1)
+    except EmptyPage:
+        proveedores_page = paginator.page(paginator.num_pages)
     
     # Productos disponibles para asociar con proveedores
     productos_disponibles = Producto.objects.all()
     
     context = {
-        'proveedores': proveedores,
+        'proveedores': proveedores_page,
         'productos_disponibles': productos_disponibles,
-        'proveedores_count': len(proveedores),
-        'proveedores_activos': len(proveedores),
+        'proveedores_count': paginator.count,
+        'proveedores_activos': paginator.count,
         'productos_proveedor': productos_disponibles.count(),
         'ordenes_pendientes': 0,
+        'search': search,
+        'per_page': int(per_page),
+        'order_by': order_by,
+        'order_direction': order_direction,
         'user': request.user,
     }
     return render(request, 'dashboard/proveedores.html', context)
+
+@login_required
+def obtener_proveedor(request, proveedor_id):
+    """API para obtener datos de un proveedor en formato JSON"""
+    user = request.user
+    
+    # Solo administradores pueden acceder
+    if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre == 'Administrador')):
+        return JsonResponse({'success': False, 'message': 'No tienes permisos'}, status=403)
+    
+    try:
+        from proveedores.models import Proveedor
+        from producto_proveedor.models import ProductoProveedor
+        
+        proveedor = Proveedor.objects.get(id_proveedor=proveedor_id)
+        
+        # Obtener productos asociados con sus nombres
+        productos_relaciones = ProductoProveedor.objects.filter(id_proveedor=proveedor).select_related('id_producto')
+        productos_ids = [rel.id_producto.id_producto for rel in productos_relaciones]
+        productos_nombres = [{'id': rel.id_producto.id_producto, 'nombre': rel.id_producto.nombre} for rel in productos_relaciones]
+        
+        # Parsear dirección para obtener comuna y región
+        direccion_completa = proveedor.direccion or ''
+        partes_direccion = direccion_completa.split(', ')
+        direccion_calle = partes_direccion[0] if len(partes_direccion) > 0 else ''
+        comuna = partes_direccion[1] if len(partes_direccion) > 1 else ''
+        region = partes_direccion[2] if len(partes_direccion) > 2 else ''
+        
+        data = {
+            'success': True,
+            'proveedor': {
+                'id': proveedor.id_proveedor,
+                'nombre': proveedor.nombre,
+                'contacto': proveedor.contacto,
+                'direccion': direccion_calle,
+                'direccion_completa': direccion_completa,
+                'comuna': comuna,
+                'region': region,
+                'productos': productos_ids,
+                'productos_detalle': productos_nombres
+            }
+        }
+        return JsonResponse(data)
+    except Proveedor.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Proveedor no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=500)
+
+@login_required
+def guardar_proveedor(request):
+    """API para crear o actualizar un proveedor"""
+    user = request.user
+    
+    # Solo administradores pueden acceder
+    if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre == 'Administrador')):
+        return JsonResponse({'success': False, 'message': 'No tienes permisos'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    
+    try:
+        from proveedores.models import Proveedor
+        from producto_proveedor.models import ProductoProveedor
+        import json
+        
+        proveedor_id = request.POST.get('proveedor_id')
+        nombre = request.POST.get('nombre', '').strip()
+        contacto = request.POST.get('contacto', '').strip()
+        direccion = request.POST.get('direccion', '').strip()
+        comuna = request.POST.get('comuna', '').strip()
+        region = request.POST.get('region', '').strip()
+        tipo_proveedor = request.POST.get('tipo_proveedor', '').strip()
+        condiciones_pago = request.POST.get('condiciones_pago', '').strip()
+        tiempo_entrega = request.POST.get('tiempo_entrega', '').strip()
+        monto_minimo = request.POST.get('monto_minimo', '').strip()
+        productos_ids = request.POST.getlist('productos[]')
+        
+        # Validaciones
+        if not nombre:
+            return JsonResponse({'success': False, 'message': 'El nombre es requerido'}, status=400)
+        
+        if len(nombre) > 150:
+            return JsonResponse({'success': False, 'message': 'El nombre no puede exceder 150 caracteres'}, status=400)
+        
+        if len(contacto) > 200:
+            return JsonResponse({'success': False, 'message': 'El contacto no puede exceder 200 caracteres'}, status=400)
+        
+        # Construir dirección completa con información chilena
+        direccion_completa = direccion
+        if comuna:
+            direccion_completa += f", {comuna}"
+        if region:
+            direccion_completa += f", {region}"
+        
+        # Guardar datos adicionales en JSON para recuperarlos después
+        datos_adicionales = {
+            'direccion_calle': direccion,
+            'comuna': comuna,
+            'region': region,
+            'tipo_proveedor': tipo_proveedor,
+            'condiciones_pago': condiciones_pago,
+            'tiempo_entrega': tiempo_entrega,
+            'monto_minimo': monto_minimo
+        }
+        
+        # Crear o actualizar proveedor
+        if proveedor_id:
+            # Actualizar existente
+            proveedor = Proveedor.objects.get(id_proveedor=proveedor_id)
+            proveedor.nombre = nombre
+            proveedor.contacto = contacto
+            proveedor.direccion = direccion_completa[:200]  # Limitar a 200 caracteres
+            proveedor.save()
+            mensaje = f'Proveedor "{nombre}" actualizado exitosamente'
+            
+            # Eliminar asociaciones anteriores
+            ProductoProveedor.objects.filter(id_proveedor=proveedor).delete()
+        else:
+            # Crear nuevo
+            proveedor = Proveedor.objects.create(
+                nombre=nombre,
+                contacto=contacto,
+                direccion=direccion_completa[:200]
+            )
+            mensaje = f'Proveedor "{nombre}" creado exitosamente'
+        
+        # Asociar productos seleccionados
+        productos_asociados = 0
+        if productos_ids:
+            for producto_id in productos_ids:
+                try:
+                    producto = Producto.objects.get(id_producto=producto_id)
+                    ProductoProveedor.objects.create(
+                        id_producto=producto,
+                        id_proveedor=proveedor,
+                        precio_acordado=0  # Valor por defecto, puede editarse después
+                    )
+                    productos_asociados += 1
+                except Producto.DoesNotExist:
+                    continue
+        
+        if productos_asociados > 0:
+            mensaje += f' con {productos_asociados} producto(s) asociado(s)'
+        
+        return JsonResponse({
+            'success': True,
+            'message': mensaje,
+            'proveedor': {
+                'id': proveedor.id_proveedor,
+                'nombre': proveedor.nombre,
+                'contacto': proveedor.contacto,
+                'direccion': proveedor.direccion,
+                'datos_adicionales': datos_adicionales,
+                'productos_asociados': productos_asociados
+            }
+        })
+        
+    except Proveedor.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Proveedor no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error al guardar: {str(e)}'}, status=500)
+
+@login_required
+def eliminar_proveedor(request, proveedor_id):
+    """API para eliminar un proveedor"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    
+    user = request.user
+    
+    # Verificar permisos - solo administradores
+    if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre == 'Administrador')):
+        return JsonResponse({'success': False, 'message': 'No tienes permisos para eliminar proveedores'}, status=403)
+    
+    try:
+        from proveedores.models import Proveedor
+        
+        # Obtener proveedor
+        proveedor = Proveedor.objects.get(id_proveedor=proveedor_id)
+        nombre_proveedor = proveedor.nombre
+        
+        # Eliminar proveedor
+        proveedor.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Proveedor "{nombre_proveedor}" eliminado exitosamente'
+        })
+        
+    except Proveedor.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Proveedor no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error al eliminar: {str(e)}'}, status=500)
+
+@login_required
+def exportar_proveedores_excel(request):
+    """Exportar proveedores a Excel con formato profesional"""
+    user = request.user
+    
+    # Solo administradores pueden exportar
+    if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre == 'Administrador')):
+        return JsonResponse({'success': False, 'message': 'No tienes permisos'}, status=403)
+    
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+        from django.http import HttpResponse
+        from datetime import datetime
+        from proveedores.models import Proveedor
+        from producto_proveedor.models import ProductoProveedor
+        
+        # Crear workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Proveedores"
+        
+        # Estilos
+        header_fill = PatternFill(start_color="4F81F7", end_color="4F81F7", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=12)
+        border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Título
+        ws.merge_cells('A1:F1')
+        ws['A1'] = '🏢 LISTADO DE PROVEEDORES - DULCERÍA LILIS'
+        ws['A1'].font = Font(bold=True, size=16, color="4F81F7")
+        ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+        ws.row_dimensions[1].height = 30
+        
+        # Fecha de exportación
+        ws.merge_cells('A2:F2')
+        ws['A2'] = f'Exportado el: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}'
+        ws['A2'].alignment = Alignment(horizontal='center')
+        ws['A2'].font = Font(italic=True, size=10)
+        ws.row_dimensions[2].height = 20
+        
+        # Encabezados
+        headers = ['ID', 'Nombre', 'Contacto', 'Dirección', 'Comuna', 'Región', 'Productos']
+        ws.append([])
+        ws.append(headers)
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=4, column=col_num)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            cell.border = border
+        
+        ws.row_dimensions[4].height = 25
+        
+        # Datos
+        proveedores = Proveedor.objects.all().order_by('id_proveedor')
+        
+        for proveedor in proveedores:
+            # Parsear dirección
+            partes_direccion = proveedor.direccion.split(', ') if proveedor.direccion else []
+            direccion_calle = partes_direccion[0] if len(partes_direccion) > 0 else ''
+            comuna = partes_direccion[1] if len(partes_direccion) > 1 else ''
+            region = partes_direccion[2] if len(partes_direccion) > 2 else ''
+            
+            # Obtener productos asociados
+            productos = ProductoProveedor.objects.filter(id_proveedor=proveedor).select_related('id_producto')
+            productos_nombres = ', '.join([p.id_producto.nombre for p in productos]) if productos.exists() else 'Sin productos'
+            
+            row = [
+                proveedor.id_proveedor,
+                proveedor.nombre,
+                proveedor.contacto or 'Sin contacto',
+                direccion_calle or 'Sin dirección',
+                comuna or '-',
+                region or '-',
+                productos_nombres
+            ]
+            ws.append(row)
+            
+            # Aplicar bordes y alineación a cada celda
+            current_row = ws.max_row
+            for col_num in range(1, len(headers) + 1):
+                cell = ws.cell(row=current_row, column=col_num)
+                cell.border = border
+                cell.alignment = Alignment(vertical='center', wrap_text=True)
+                
+                # ID centrado
+                if col_num == 1:
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+        
+        # Ajustar anchos de columna
+        column_widths = [8, 30, 25, 35, 20, 30, 40]
+        for i, width in enumerate(column_widths, 1):
+            ws.column_dimensions[get_column_letter(i)].width = width
+        
+        # Agregar totales
+        total_row = ws.max_row + 2
+        ws.merge_cells(f'A{total_row}:C{total_row}')
+        ws[f'A{total_row}'] = f'Total de Proveedores: {proveedores.count()}'
+        ws[f'A{total_row}'].font = Font(bold=True, size=11)
+        ws[f'A{total_row}'].alignment = Alignment(horizontal='left')
+        
+        # Preparar respuesta HTTP
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="Proveedores_Lilis_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'Error al exportar: {str(e)}'}, status=500)
 
 @login_required
 def ventas_view(request):
@@ -475,7 +822,7 @@ def reset_password_view(request):
 
 @login_required
 def usuarios_view(request):
-    """Vista de gestión de usuarios"""
+    """Vista de gestión de usuarios con búsqueda, paginación y ordenamiento"""
     user = request.user
     
     # Solo administradores pueden gestionar usuarios
@@ -488,12 +835,56 @@ def usuarios_view(request):
     usuarios = Usuario.objects.select_related('id_rol').all()
     roles = Rol.objects.all()
     
+    # Búsqueda por múltiples campos
+    search = request.GET.get('search', '')
+    if search:
+        usuarios = usuarios.filter(
+            nombre__icontains=search
+        ) | usuarios.filter(
+            username__icontains=search
+        ) | usuarios.filter(
+            email__icontains=search
+        ) | usuarios.filter(
+            correo__icontains=search
+        )
+    
+    # Ordenamiento
+    order_by = request.GET.get('order_by', 'id_usuario')
+    order_direction = request.GET.get('order_direction', 'asc')
+    
+    # Construir el campo de ordenamiento
+    if order_direction == 'desc':
+        order_field = f'-{order_by}' if not order_by.startswith('-') else order_by
+    else:
+        order_field = order_by.replace('-', '')
+    
+    usuarios = usuarios.order_by(order_field)
+    
+    # Paginación - obtener de sesión o de parámetro GET
+    per_page_param = request.GET.get('per_page')
+    if per_page_param:
+        per_page = int(per_page_param)
+        request.session['usuarios_per_page'] = per_page
+    else:
+        per_page = request.session.get('usuarios_per_page', 10)
+        # Asegurar que sea entero
+        if isinstance(per_page, str):
+            per_page = int(per_page)
+    
+    paginator = Paginator(usuarios, per_page)
+    page = request.GET.get('page', 1)
+    usuarios_paginados = paginator.get_page(page)
+    
     context = {
-        'usuarios': usuarios,
+        'usuarios': usuarios_paginados,
         'roles': roles,
-        'usuarios_count': usuarios.count(),
-        'usuarios_activos': usuarios.filter(is_active=True).count(),
-        'usuarios_inactivos': usuarios.filter(is_active=False).count(),
+        'search': search,
+        'order_by': order_by.replace('-', ''),
+        'order_direction': order_direction,
+        'per_page': per_page,
+        'usuarios_count': Usuario.objects.count(),
+        'usuarios_activos': Usuario.objects.filter(is_active=True).count(),
+        'usuarios_inactivos': Usuario.objects.filter(is_active=False).count(),
         'nuevos_usuarios': 0,  # Mock data
         'user': request.user,
     }
@@ -557,21 +948,37 @@ def guardar_usuario(request):
     try:
         from usuarios.models import Usuario
         from roles.models import Rol
+        import secrets
+        import string
         
         usuario_id = request.POST.get('user_id')
-        usuario_username = request.POST.get('usuario')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        nombre = request.POST.get('nombre')
-        telefono = request.POST.get('telefono', '')
+        email = request.POST.get('email', '').strip()
+        nombre = request.POST.get('nombre', '').strip()
+        telefono = request.POST.get('telefono', '').strip()
         id_rol = request.POST.get('id_rol')
-        activo = request.POST.get('activo') == 'on'
+        # El checkbox puede venir como 'on', 'true', o no venir
+        activo = request.POST.get('activo', 'off') in ['on', 'true', True]
+        forzar_cambio = request.POST.get('forzar_cambio_contrasena', 'on') in ['on', 'true', True]
         
         # Validaciones básicas
-        if not all([usuario_username, email, nombre, id_rol]):
+        print(f"DEBUG - Datos recibidos: email={email}, nombre={nombre}, id_rol={id_rol}")
+        
+        if not email:
             return JsonResponse({
                 'success': False, 
-                'errors': {'general': ['Todos los campos requeridos deben ser completados']}
+                'errors': {'email': ['El campo Email es requerido']}
+            })
+        
+        if not nombre:
+            return JsonResponse({
+                'success': False, 
+                'errors': {'nombre': ['El campo Nombre es requerido']}
+            })
+        
+        if not id_rol:
+            return JsonResponse({
+                'success': False, 
+                'errors': {'id_rol': ['El campo Rol es requerido']}
             })
         
         # Obtener el rol
@@ -588,59 +995,55 @@ def guardar_usuario(request):
             # Editar usuario existente
             usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
             
-            # Verificar que el username no esté siendo usado por otro usuario
-            if Usuario.objects.filter(username=usuario_username).exclude(id_usuario=usuario_id).exists():
+            # Verificar que el email no esté siendo usado por otro usuario
+            if Usuario.objects.filter(correo=email).exclude(id_usuario=usuario_id).exists():
                 return JsonResponse({
                     'success': False,
-                    'errors': {'usuario': ['Este nombre de usuario ya está en uso']}
+                    'errors': {'email': ['Este correo electrónico ya está registrado']}
                 })
             
             # Actualizar datos
-            usuario.username = usuario_username
+            usuario.username = email
             usuario.email = email
             usuario.correo = email
             usuario.nombre = nombre
-            usuario.telefono = telefono
+            usuario.telefono = telefono if telefono else None
             usuario.id_rol = rol
             usuario.is_active = activo
             
-            # Actualizar contraseña solo si se proporcionó
-            if password:
-                usuario.set_password(password)
-            
             usuario.save()
             action = 'actualizado'
+            temp_password = None  # No se genera contraseña en edición
         else:
             # Crear nuevo usuario
-            # Verificar que el username no exista
-            if Usuario.objects.filter(username=usuario_username).exists():
+            # Verificar que el email no exista
+            if Usuario.objects.filter(correo=email).exists():
                 return JsonResponse({
                     'success': False,
-                    'errors': {'usuario': ['Este nombre de usuario ya está en uso']}
+                    'errors': {'email': ['Este correo electrónico ya está registrado']}
                 })
             
-            # Validar que se proporcionó contraseña
-            if not password:
-                return JsonResponse({
-                    'success': False,
-                    'errors': {'password': ['La contraseña es requerida para nuevos usuarios']}
-                })
+            # Generar contraseña temporal aleatoria (12 caracteres con letras, números y símbolos)
+            alphabet = string.ascii_letters + string.digits + "!@#$%&*"
+            temp_password = ''.join(secrets.choice(alphabet) for i in range(12))
             
             # Crear usuario
             usuario = Usuario(
-                username=usuario_username,
+                username=email,
                 email=email,
                 correo=email,
                 nombre=nombre,
-                telefono=telefono,
+                telefono=telefono if telefono else None,
                 id_rol=rol,
-                is_active=activo
+                is_active=activo,
+                forzar_cambio_contrasena=forzar_cambio
             )
-            usuario.set_password(password)
+            usuario.set_password(temp_password)
             usuario.save()
             action = 'creado'
         
-        return JsonResponse({
+        # Preparar respuesta
+        response_data = {
             'success': True,
             'message': f'Usuario {action} correctamente',
             'usuario': {
@@ -649,7 +1052,14 @@ def guardar_usuario(request):
                 'nombre': usuario.nombre,
                 'email': usuario.email
             }
-        })
+        }
+        
+        # Si es un nuevo usuario, incluir la contraseña temporal
+        if temp_password:
+            response_data['temp_password'] = temp_password
+            response_data['message'] = f'Usuario creado correctamente. Contraseña temporal: {temp_password}'
+        
+        return JsonResponse(response_data)
         
     except Exception as e:
         return JsonResponse({
@@ -664,7 +1074,7 @@ def eliminar_usuario(request, usuario_id):
     
     # Solo administradores pueden acceder
     if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre == 'Administrador')):
-        return JsonResponse({'success': False, 'message': 'No tienes permisos'}, status=403)
+        return JsonResponse({'success': False, 'message': 'No tienes permisos para realizar esta acción'}, status=403)
     
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
@@ -672,6 +1082,13 @@ def eliminar_usuario(request, usuario_id):
     try:
         from usuarios.models import Usuario
         usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
+        
+        # Verificar si el usuario puede ser eliminado
+        if not usuario.can_be_deleted():
+            return JsonResponse({
+                'success': False,
+                'message': 'No se puede eliminar este usuario porque es un administrador del sistema'
+            })
         
         # No permitir eliminar el usuario actual
         if usuario.id_usuario == user.id_usuario:
@@ -691,8 +1108,45 @@ def eliminar_usuario(request, usuario_id):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': str(e)
+            'message': f'Error al eliminar el usuario: {str(e)}'
         }, status=500)
+
+@login_required
+def cambiar_contrasena_obligatorio(request):
+    """Vista para cambio de contraseña obligatorio en el primer login"""
+    user = request.user
+    
+    # Si el usuario no necesita cambiar la contraseña, redirigir al dashboard
+    if not hasattr(user, 'forzar_cambio_contrasena') or not user.forzar_cambio_contrasena:
+        return redirect('dashboard:home')
+    
+    if request.method == 'POST':
+        nueva_contrasena = request.POST.get('nueva_contrasena', '')
+        confirmar_contrasena = request.POST.get('confirmar_contrasena', '')
+        
+        # Validaciones
+        if not nueva_contrasena:
+            messages.error(request, 'La nueva contraseña es requerida')
+        elif len(nueva_contrasena) < 8:
+            messages.error(request, 'La contraseña debe tener al menos 8 caracteres')
+        elif nueva_contrasena != confirmar_contrasena:
+            messages.error(request, 'Las contraseñas no coinciden')
+        else:
+            # Cambiar la contraseña
+            user.set_password(nueva_contrasena)
+            user.forzar_cambio_contrasena = False
+            user.save()
+            
+            # Re-autenticar al usuario con la nueva contraseña
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, user)
+            
+            messages.success(request, 'Contraseña cambiada exitosamente')
+            return redirect('dashboard:home')
+    
+    return render(request, 'dashboard/cambiar_contrasena_obligatorio.html', {
+        'user': user
+    })
 
 @login_required
 def cambiar_estado_usuario(request, usuario_id):
@@ -701,7 +1155,7 @@ def cambiar_estado_usuario(request, usuario_id):
     
     # Solo administradores pueden acceder
     if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre == 'Administrador')):
-        return JsonResponse({'success': False, 'message': 'No tienes permisos'}, status=403)
+        return JsonResponse({'success': False, 'message': 'No tienes permisos para realizar esta acción'}, status=403)
     
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
@@ -710,15 +1164,24 @@ def cambiar_estado_usuario(request, usuario_id):
         from usuarios.models import Usuario
         usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
         
-        # No permitir desactivar el usuario actual
+        # No permitir cambiar el estado del usuario actual
         if usuario.id_usuario == user.id_usuario:
             return JsonResponse({
                 'success': False,
                 'message': 'No puedes cambiar el estado de tu propia cuenta'
             })
         
-        # Cambiar estado
+        # Obtener el nuevo estado
         nuevo_estado = request.POST.get('activo', 'false') == 'true'
+        
+        # Si se intenta desactivar, verificar si puede ser desactivado
+        if not nuevo_estado and not usuario.can_be_deactivated():
+            return JsonResponse({
+                'success': False,
+                'message': 'No se puede desactivar este usuario porque es un administrador del sistema'
+            })
+        
+        # Cambiar estado
         usuario.is_active = nuevo_estado
         usuario.save()
         
@@ -733,7 +1196,7 @@ def cambiar_estado_usuario(request, usuario_id):
     except Exception as e:
         return JsonResponse({
             'success': False,
-            'message': str(e)
+            'message': f'Error al cambiar el estado: {str(e)}'
         }, status=500)
 
 @login_required
@@ -1002,3 +1465,22 @@ def actualizar_producto(request):
         import traceback
         print(f"Error actualizando producto: {traceback.format_exc()}")
         return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=500)
+
+
+# ==========================================
+# Vistas de Error Personalizadas
+# ==========================================
+
+def error_404(request, exception=None):
+    """Vista personalizada para error 404 - Página no encontrada"""
+    return render(request, 'dashboard/error_404.html', status=404)
+
+
+def error_500(request):
+    """Vista personalizada para error 500 - Error del servidor"""
+    return render(request, 'dashboard/error_500.html', status=500)
+
+
+def error_403(request, exception=None):
+    """Vista personalizada para error 403 - Acceso denegado"""
+    return render(request, 'dashboard/error_403.html', status=403)

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - Acceso Denegado | Dulcería Lilis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --lilis-blue: #4f81f7;
+            --lilis-blue-hover: #3d6fe5;
+            --lilis-red: #dc2626;
+            --lilis-red-hover: #b91c1c;
+            --lilis-yellow: #f59e0b;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--lilis-yellow) 0%, #f97316 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .error-container {
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+        
+        .error-code {
+            font-size: 10rem;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1rem;
+            animation: swing 2s ease-in-out infinite;
+        }
+        
+        .error-icon {
+            font-size: 8rem;
+            margin-bottom: 2rem;
+            animation: bounce 1s ease-in-out infinite;
+        }
+        
+        .error-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .error-message {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .error-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .btn-home {
+            background: linear-gradient(135deg, var(--lilis-blue), var(--lilis-red));
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+        
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            margin-left: 1rem;
+        }
+        
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        @keyframes swing {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg); }
+            75% { transform: rotate(-5deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .suggestions {
+            text-align: left;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(245, 158, 11, 0.1);
+            border-radius: 15px;
+            border-left: 4px solid var(--lilis-yellow);
+        }
+        
+        .suggestions h5 {
+            color: var(--lilis-yellow);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .suggestions ul {
+            color: #333;
+            margin-bottom: 0;
+        }
+        
+        .suggestions li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-card">
+            <div class="error-icon">
+                <i class="bi bi-shield-fill-exclamation" style="color: var(--lilis-yellow);"></i>
+            </div>
+            <div class="error-code" style="color: var(--lilis-yellow);">403</div>
+            <h1 class="error-title" style="color: #333;">¡Acceso Denegado!</h1>
+            <p class="error-message" style="color: #666;">
+                No tienes permisos para acceder a esta página o recurso.
+            </p>
+            
+            <div class="suggestions">
+                <h5><i class="bi bi-shield-lock-fill me-2"></i>¿Por qué veo esto?</h5>
+                <ul>
+                    <li>No tienes los permisos necesarios para acceder</li>
+                    <li>Tu rol de usuario no tiene acceso a este módulo</li>
+                    <li>Puede que necesites iniciar sesión nuevamente</li>
+                    <li>Contacta al administrador si necesitas acceso</li>
+                </ul>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'dashboard:home' %}" class="btn-home">
+                    <i class="bi bi-house-fill"></i>
+                    Ir al Inicio
+                </a>
+                <a href="javascript:history.back()" class="btn-back">
+                    <i class="bi bi-arrow-left"></i>
+                    Volver Atrás
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

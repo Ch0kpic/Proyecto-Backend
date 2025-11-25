@@ -21,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-na9$ddi6t=y9muaxphwjt65ct!b_)^#yezrqrd1m&x%yayc099')
+SECRET_KEY = config('DJANGO_SECRET_KEY', default=config('SECRET_KEY', default='django-insecure-na9$ddi6t=y9muaxphwjt65ct!b_)^#yezrqrd1m&x%yayc099'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default='True', cast=lambda x: x.lower() in ['true', '1', 'yes'])
+DEBUG = config('DJANGO_DEBUG', default=config('DEBUG', default='True'), cast=lambda x: str(x).lower() in ['true', '1', 'yes'])
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
 
 # Application definition
@@ -130,9 +130,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'es-co'
+LANGUAGE_CODE = config('DJANGO_LANGUAGE_CODE', default='es-cl')
 
-TIME_ZONE = 'America/Bogota'
+TIME_ZONE = config('DJANGO_TIME_ZONE', default='America/Santiago')
 
 USE_I18N = True
 
@@ -165,13 +165,23 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
 # Configuración de Email
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='tu-email@gmail.com')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='tu-app-password')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# Soporta tanto Gmail como SendGrid según variables de entorno
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+
+# SendGrid: usa SENDGRID_API_KEY como password y 'apikey' como user
+# Gmail: usa EMAIL_HOST_USER y EMAIL_HOST_PASSWORD normales
+SENDGRID_API_KEY = config('SENDGRID_API_KEY', default='')
+if SENDGRID_API_KEY:
+    EMAIL_HOST_USER = 'apikey'
+    EMAIL_HOST_PASSWORD = SENDGRID_API_KEY
+else:
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@dulcerialilis.cl')
 
 # URL del sitio para enlaces en correos (RQ-USR-03)
 SITE_URL = config('SITE_URL', default='http://127.0.0.1:8000')

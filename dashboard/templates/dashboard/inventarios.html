@@ -77,10 +77,63 @@
                 Salida
             </button>
             {% endif %}
-            <button class="btn btn-lilis-primary" onclick="generateInventoryReport()">
-                <i class="bi bi-file-earmark-text me-2"></i>
-                Reporte
-            </button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-lilis-primary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Reportes
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'dashboard:exportar_inventario_excel' %}">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Inventario (Excel)
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'dashboard:exportar_movimientos_excel' %}">
+                        <i class="bi bi-file-earmark-spreadsheet me-2"></i>Movimientos (Excel)
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" onclick="verHistorialCompleto(); return false;">
+                        <i class="bi bi-clock-history me-2"></i>Ver Historial
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Búsqueda y Filtros Avanzados -->
+    <div class="lilis-card mb-4">
+        <div class="lilis-card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="lilis-form-label">🔍 Buscar</label>
+                    <input type="text" name="search" class="lilis-form-control" placeholder="Producto o ubicación..." value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="lilis-form-label">📊 Nivel de Stock</label>
+                    <select name="nivel_stock" class="lilis-form-control">
+                        <option value="">Todos</option>
+                        <option value="critico" {% if nivel_stock_filtro == 'critico' %}selected{% endif %}>Crítico (0)</option>
+                        <option value="bajo" {% if nivel_stock_filtro == 'bajo' %}selected{% endif %}>Bajo (< Mínimo)</option>
+                        <option value="medio" {% if nivel_stock_filtro == 'medio' %}selected{% endif %}>Medio (Normal)</option>
+                        <option value="alto" {% if nivel_stock_filtro == 'alto' %}selected{% endif %}>Alto (> Máximo)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="lilis-form-label">📍 Ubicación</label>
+                    <select name="ubicacion" class="lilis-form-control">
+                        <option value="">Todas</option>
+                        {% for ub in ubicaciones %}
+                        <option value="{{ ub }}" {% if ubicacion_filtro == ub %}selected{% endif %}>{{ ub }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-lilis-primary flex-fill">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'dashboard:inventarios' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
     
@@ -98,6 +151,28 @@
         <div>
             <strong>Permisos de bodeguero:</strong> Tienes acceso completo para gestionar el inventario y realizar movimientos.
         </div>
+    </div>
+    {% endif %}
+    
+    <!-- Alertas de Stock Bajo/Crítico -->
+    {% if alertas_activas > 0 %}
+    <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle-fill me-3 fs-3"></i>
+            <div>
+                <h5 class="alert-heading mb-1">⚠️ Alertas de Inventario Activas</h5>
+                <p class="mb-0">
+                    Hay <strong>{{ alertas_activas }}</strong> alerta(s) de inventario pendientes
+                    {% if alertas_criticas > 0 %}
+                    ({{ alertas_criticas }} crítica(s))
+                    {% endif %}
+                </p>
+            </div>
+            <button type="button" class="btn btn-warning ms-auto" onclick="verAlertas()">
+                <i class="bi bi-eye me-1"></i>Ver Alertas
+            </button>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     {% endif %}
     
@@ -137,10 +212,10 @@
         <div class="col-md-3">
             <div class="lilis-card">
                 <div class="lilis-card-body text-center">
-                    <div class="fs-2 fw-bold text-lilis-red mb-1">{{ stock_bajo|default:0 }}</div>
+                    <div class="fs-2 fw-bold text-lilis-red mb-1">{{ stock_bajo|default:0 }}{% if stock_critico > 0 %} + {{ stock_critico }}{% endif %}</div>
                     <div class="text-muted">
                         <i class="bi bi-exclamation-triangle me-1"></i>
-                        Stock Bajo
+                        Stock Bajo{% if stock_critico > 0 %} / Crítico{% endif %}
                     </div>
                 </div>
             </div>
@@ -308,26 +383,32 @@
                 <div class="lilis-card-body">
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <input type="date" class="lilis-form-control" id="dateFrom" value="{{ today|date:'Y-m-d' }}">
+                            <label class="form-label small text-muted">Desde</label>
+                            <input type="date" class="lilis-form-control" id="dateFrom">
                         </div>
                         <div class="col-md-3">
-                            <input type="date" class="lilis-form-control" id="dateTo" value="{{ today|date:'Y-m-d' }}">
+                            <label class="form-label small text-muted">Hasta</label>
+                            <input type="date" class="lilis-form-control" id="dateTo">
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label small text-muted">Tipo</label>
                             <select class="lilis-form-control" id="filterMovementType">
                                 <option value="">Todos los tipos</option>
                                 <option value="entrada">Entrada</option>
                                 <option value="salida">Salida</option>
+                                <option value="ajuste">Ajuste</option>
                                 <option value="transferencia">Transferencia</option>
                             </select>
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label small text-muted">&nbsp;</label>
                             <button class="btn btn-lilis-primary w-100" onclick="filterMovements()">
                                 <i class="bi bi-search me-1"></i>
                                 Filtrar
                             </button>
                         </div>
                         <div class="col-md-2">
+                            <label class="form-label small text-muted">&nbsp;</label>
                             <button class="btn btn-outline-success w-100" onclick="exportMovementsToExcel()">
                                 <i class="bi bi-file-excel me-1"></i>
                                 Exportar
@@ -348,51 +429,48 @@
                 
                 <div class="lilis-card-body">
                     <div class="row g-3" id="movementsList">
-                        <!-- Ejemplo de movimientos -->
-                        <div class="col-12">
-                            <div class="d-flex align-items-center p-3 border rounded">
-                                <div class="movement-icon movement-in me-3">
-                                    <i class="bi bi-arrow-down"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1">Entrada de Chocolates</h6>
-                                            <small class="text-muted">Por: Usuario Admin • Hoy 14:30</small>
-                                        </div>
-                                        <div class="text-end">
-                                            <div class="fw-bold text-success">+50 unidades</div>
-                                            <small class="text-muted">Stock actual: 150</small>
+                        {% if movimientos_recientes %}
+                            {% for movimiento in movimientos_recientes %}
+                            <div class="col-12">
+                                <div class="d-flex align-items-center p-3 border rounded">
+                                    <div class="movement-icon movement-{{ movimiento.tipo_movimiento }} me-3">
+                                        <i class="bi bi-arrow-{% if movimiento.tipo_movimiento == 'entrada' %}down{% elif movimiento.tipo_movimiento == 'salida' %}up{% else %}left-right{% endif %}"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">{{ movimiento.get_tipo_movimiento_display }} - {{ movimiento.inventario.id_producto.nombre }}</h6>
+                                                <small class="text-muted">
+                                                    Por: {{ movimiento.usuario.nombre }} {{ movimiento.usuario.apellido }} • 
+                                                    {{ movimiento.fecha_movimiento|date:"d/m/Y H:i" }}
+                                                    {% if movimiento.proveedor %}
+                                                    <br>Proveedor: {{ movimiento.proveedor }}
+                                                    {% endif %}
+                                                    {% if movimiento.motivo %}
+                                                    <br>{{ movimiento.motivo }}
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="fw-bold {% if movimiento.tipo_movimiento == 'entrada' %}text-success{% else %}text-danger{% endif %}">
+                                                    {% if movimiento.tipo_movimiento == 'entrada' %}+{% else %}-{% endif %}{{ movimiento.cantidad }} unidades
+                                                </div>
+                                                <small class="text-muted">{{ movimiento.cantidad_anterior }} → {{ movimiento.cantidad_nueva }}</small>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="col-12">
-                            <div class="d-flex align-items-center p-3 border rounded">
-                                <div class="movement-icon movement-out me-3">
-                                    <i class="bi bi-arrow-up"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="mb-1">Venta de Caramelos</h6>
-                                            <small class="text-muted">Venta #001 • Hoy 12:15</small>
-                                        </div>
-                                        <div class="text-end">
-                                            <div class="fw-bold text-danger">-25 unidades</div>
-                                            <small class="text-muted">Stock actual: 75</small>
-                                        </div>
-                                    </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="text-center py-5">
+                                    <i class="bi bi-clock-history display-4 text-muted mb-3 d-block"></i>
+                                    <h6 class="text-muted">No hay movimientos registrados</h6>
+                                    <p class="text-muted small">Los movimientos aparecerán aquí cuando registres entradas o salidas</p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="text-center py-4" id="noMovements" style="display: none;">
-                        <i class="bi bi-clock-history display-4 text-muted mb-3"></i>
-                        <h6 class="text-muted">No hay movimientos en el período seleccionado</h6>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -503,11 +581,11 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="lilis-form-label">Producto *</label>
-                            <select class="lilis-form-control" name="producto" required>
+                            <select class="lilis-form-control" id="inventario_id" name="inventario_id" required>
                                 <option value="">Seleccionar producto...</option>
                                 {% for inventario in inventarios %}
                                 <option value="{{ inventario.id_inventario }}">
-                                    {{ inventario.id_producto.nombre }} (Stock: {{ inventario.stock_actual|default:0 }})
+                                    {{ inventario.id_producto.nombre }} - {{ inventario.ubicacion }} (Stock: {{ inventario.cantidad_actual }})
                                 </option>
                                 {% endfor %}
                             </select>
@@ -515,17 +593,12 @@
                         
                         <div class="col-md-6">
                             <label class="lilis-form-label">Cantidad *</label>
-                            <input type="number" class="lilis-form-control" name="cantidad" min="1" required>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="lilis-form-label">Fecha</label>
-                            <input type="date" class="lilis-form-control" name="fecha" value="{{ today|date:'Y-m-d' }}">
+                            <input type="number" class="lilis-form-control" id="cantidad" name="cantidad" min="1" required>
                         </div>
                         
                         <div class="col-12" id="providerField" style="display: none;">
-                            <label class="lilis-form-label">Proveedor</label>
-                            <select class="lilis-form-control" name="proveedor">
+                            <label class="lilis-form-label">Proveedor (Opcional)</label>
+                            <select class="lilis-form-control" id="proveedor" name="proveedor">
                                 <option value="">Seleccionar proveedor...</option>
                                 {% for proveedor in proveedores %}
                                 <option value="{{ proveedor.id_proveedor }}">{{ proveedor.nombre }}</option>
@@ -535,7 +608,7 @@
                         
                         <div class="col-12">
                             <label class="lilis-form-label">Motivo/Observaciones</label>
-                            <textarea class="lilis-form-control" name="observaciones" rows="3" placeholder="Descripción del movimiento..."></textarea>
+                            <textarea class="lilis-form-control" id="motivo" name="motivo" rows="3" placeholder="Descripción del movimiento..."></textarea>
                         </div>
                     </div>
                 </form>
@@ -554,69 +627,71 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    // Inventory Management Functions
-    function quickEntry(inventoryId) {
+    // CSRF Token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // Quick Entry/Exit functions
+    function quickEntry(inventarioId) {
+        // Set values for modal
+        document.getElementById('inventario_id').value = inventarioId;
         document.getElementById('movementType').value = 'entrada';
         document.getElementById('movementModalTitle').textContent = 'Entrada de Inventario';
         document.getElementById('providerField').style.display = 'block';
         
+        // Open modal
         const modal = new bootstrap.Modal(document.getElementById('movementModal'));
         modal.show();
     }
     
-    function quickExit(inventoryId) {
+    function quickExit(inventarioId) {
+        // Set values for modal
+        document.getElementById('inventario_id').value = inventarioId;
         document.getElementById('movementType').value = 'salida';
         document.getElementById('movementModalTitle').textContent = 'Salida de Inventario';
         document.getElementById('providerField').style.display = 'none';
         
+        // Open modal
         const modal = new bootstrap.Modal(document.getElementById('movementModal'));
         modal.show();
     }
     
-    function viewInventoryDetails(inventoryId) {
-        LilisSystem.showAlert(`Viendo detalles del inventario ${inventoryId}`, 'info');
-    }
-    
-    function submitMovement() {
-        const form = document.getElementById('movementForm');
-        const formData = new FormData(form);
-        
-        // Validation
-        if (!formData.get('producto') || !formData.get('cantidad')) {
-            LilisSystem.showAlert('Por favor completa todos los campos requeridos', 'warning');
-            return;
-        }
-        
-        LilisSystem.showAlert('Registrando movimiento...', 'info');
-        
-        // Simulate API call
-        setTimeout(() => {
-            LilisSystem.showAlert('Movimiento registrado exitosamente', 'success');
-            bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
-            form.reset();
-            refreshInventory();
-        }, 1500);
+    function viewInventoryDetails(inventarioId) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Detalles del inventario',
+            text: `Ver detalles completos del inventario #${inventarioId}`,
+            confirmButtonColor: '#4F81F7'
+        });
     }
     
     function refreshInventory() {
-        LilisSystem.showAlert('Actualizando inventario...', 'info');
-        // Simulate refresh
-        setTimeout(() => {
-            LilisSystem.showAlert('Inventario actualizado', 'success');
-        }, 1000);
-    }
-    
-    function generateInventoryReport() {
-        LilisSystem.showAlert('Generando reporte de inventario...', 'info');
+        location.reload();
     }
     
     function exportStockToExcel() {
-        LilisSystem.showAlert('Exportando stock a Excel...', 'info');
+        window.location.href = '{% url "dashboard:exportar_inventario_excel" %}';
     }
     
     function exportMovementsToExcel() {
-        LilisSystem.showAlert('Exportando movimientos a Excel...', 'info');
+        window.location.href = '{% url "dashboard:exportar_movimientos_excel" %}';
     }
     
     function filterMovements() {
@@ -624,70 +699,316 @@
         const dateTo = document.getElementById('dateTo').value;
         const movementType = document.getElementById('filterMovementType').value;
         
-        LilisSystem.showAlert('Filtrando movimientos...', 'info');
-        // Implement filtering logic here
-    }
-    
-    function reorderProduct(productId) {
-        LilisSystem.showAlert(`Iniciando proceso de reabastecimiento para producto ${productId}`, 'info');
-    }
-    
-    function saveAlertSettings() {
-        LilisSystem.showAlert('Configuración de alertas guardada', 'success');
-    }
-    
-    // Filter Functions for Stock Panel
-    function filterStock() {
-        const searchTerm = document.getElementById('searchStock').value.toLowerCase();
-        const stockLevel = document.getElementById('filterStockLevel').value;
-        const provider = document.getElementById('filterProvider').value;
+        // Mostrar loading
+        const movementsList = document.getElementById('movementsList');
+        movementsList.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
         
-        const cards = document.querySelectorAll('#stockGrid > div[data-product-id]');
+        // Construir URL con parámetros
+        let url = '{% url "dashboard:historial_movimientos" %}?';
+        const params = [];
+        if (dateFrom) params.push(`fecha_desde=${dateFrom}`);
+        if (dateTo) params.push(`fecha_hasta=${dateTo}`);
+        if (movementType) params.push(`tipo=${movementType}`);
+        url += params.join('&');
         
-        cards.forEach(card => {
-            const productName = card.querySelector('h6').textContent.toLowerCase();
-            const visible = (!searchTerm || productName.includes(searchTerm));
-            
-            if (visible) {
-                card.style.display = '';
-            } else {
-                card.style.display = 'none';
+        // Hacer petición AJAX
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
             }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.movimientos.length === 0) {
+                    movementsList.innerHTML = `
+                        <div class="col-12">
+                            <div class="text-center py-5">
+                                <i class="bi bi-clock-history display-4 text-muted mb-3 d-block"></i>
+                                <h6 class="text-muted">No hay movimientos en el período seleccionado</h6>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    let html = '';
+                    data.movimientos.forEach(mov => {
+                        const iconClass = mov.tipo === 'Entrada' ? 'movement-in' : mov.tipo === 'Salida' ? 'movement-out' : 'movement-transfer';
+                        const icon = mov.tipo === 'Entrada' ? 'down' : mov.tipo === 'Salida' ? 'up' : 'left-right';
+                        const textClass = mov.tipo === 'Entrada' ? 'text-success' : 'text-danger';
+                        const sign = mov.tipo === 'Entrada' ? '+' : '-';
+                        
+                        html += `
+                            <div class="col-12">
+                                <div class="d-flex align-items-center p-3 border rounded">
+                                    <div class="movement-icon ${iconClass} me-3">
+                                        <i class="bi bi-arrow-${icon}"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="mb-1">${mov.tipo} - ${mov.producto}</h6>
+                                                <small class="text-muted">
+                                                    Por: ${mov.usuario} • ${mov.fecha}
+                                                    ${mov.proveedor ? '<br>Proveedor: ' + mov.proveedor : ''}
+                                                    ${mov.motivo ? '<br>' + mov.motivo : ''}
+                                                </small>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="fw-bold ${textClass}">${sign}${mov.cantidad} unidades</div>
+                                                <small class="text-muted">${mov.cantidad_anterior} → ${mov.cantidad_nueva}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    movementsList.innerHTML = html;
+                }
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los movimientos',
+                    confirmButtonColor: '#4F81F7'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al filtrar los movimientos',
+                confirmButtonColor: '#4F81F7'
+            });
         });
     }
-    
-    // Modal Event Handler
+
+    // Wait for DOM to load
     document.addEventListener('DOMContentLoaded', function() {
-        // Modal event listener for movement type
+        // Modal setup
         const movementModal = document.getElementById('movementModal');
         if (movementModal) {
-            movementModal.addEventListener('show.bs.modal', function(event) {
+            movementModal.addEventListener('show.bs.modal', function (event) {
                 const button = event.relatedTarget;
                 if (button) {
                     const type = button.getAttribute('data-type');
+                    
                     if (type === 'entrada') {
-                        quickEntry();
+                        document.getElementById('movementType').value = 'entrada';
+                        document.getElementById('movementModalTitle').textContent = 'Entrada de Inventario';
+                        document.getElementById('providerField').style.display = 'block';
                     } else if (type === 'salida') {
-                        quickExit();
+                        document.getElementById('movementType').value = 'salida';
+                        document.getElementById('movementModalTitle').textContent = 'Salida de Inventario';
+                        document.getElementById('providerField').style.display = 'none';
                     }
                 }
             });
         }
+    });
+    
+    // Registrar movimiento
+    function submitMovement() {
+        const form = document.getElementById('movementForm');
+        const inventarioId = document.getElementById('inventario_id').value;
+        const tipoMovimiento = document.getElementById('movementType').value;
+        const cantidad = document.getElementById('cantidad').value;
+        const proveedor = document.getElementById('proveedor').value;
+        const motivo = document.getElementById('motivo').value;
         
-        // Filter event listeners
-        const searchStock = document.getElementById('searchStock');
-        if (searchStock) {
-            searchStock.addEventListener('input', filterStock);
+        // Validación
+        if (!inventarioId || !cantidad) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos requeridos',
+                text: 'Por favor completa todos los campos obligatorios',
+                confirmButtonColor: '#4F81F7'
+            });
+            return;
         }
         
-        ['filterStockLevel', 'filterProvider'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.addEventListener('change', filterStock);
+        // Mostrar loading
+        Swal.fire({
+            title: 'Registrando movimiento...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
             }
         });
         
-        console.log('Inventory management loaded');
-    });
+        // Enviar solicitud
+        const formData = new FormData();
+        formData.append('inventario_id', inventarioId);
+        formData.append('tipo_movimiento', tipoMovimiento);
+        formData.append('cantidad', cantidad);
+        formData.append('proveedor', proveedor);
+        formData.append('motivo', motivo);
+        
+        fetch('{% url "dashboard:registrar_movimiento" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    html: `
+                        <p>${data.message}</p>
+                        <hr>
+                        <p><strong>Stock anterior:</strong> ${data.data.cantidad_anterior}</p>
+                        <p><strong>Stock nuevo:</strong> ${data.data.cantidad_nueva}</p>
+                        <p><strong>Nivel:</strong> <span class="badge bg-${data.data.nivel_stock === 'bajo' ? 'danger' : data.data.nivel_stock === 'medio' ? 'warning' : 'success'}">${data.data.nivel_stock.toUpperCase()}</span></p>
+                    `,
+                    confirmButtonColor: '#4F81F7'
+                }).then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('movementModal')).hide();
+                    form.reset();
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message,
+                    confirmButtonColor: '#4F81F7'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error al registrar el movimiento',
+                confirmButtonColor: '#4F81F7'
+            });
+        });
+    }
+    
+    // Ver alertas
+    function verAlertas() {
+        Swal.fire({
+            title: 'Cargando alertas...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        fetch('{% url "dashboard:alertas_inventario" %}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let html = '<div class="table-responsive"><table class="table table-sm">';
+                html += '<thead><tr><th>Producto</th><th>Ubicación</th><th>Stock</th><th>Nivel</th></tr></thead><tbody>';
+                
+                if (data.alertas.length === 0) {
+                    html += '<tr><td colspan="4" class="text-center">No hay alertas activas</td></tr>';
+                } else {
+                    data.alertas.forEach(alerta => {
+                        const badgeClass = alerta.tipo === 'Stock Crítico' ? 'danger' : 'warning';
+                        html += `<tr>
+                            <td>${alerta.producto}</td>
+                            <td>${alerta.ubicacion}</td>
+                            <td>${alerta.stock_actual} / ${alerta.stock_minimo}</td>
+                            <td><span class="badge bg-${badgeClass}">${alerta.tipo}</span></td>
+                        </tr>`;
+                    });
+                }
+                
+                html += '</tbody></table></div>';
+                
+                Swal.fire({
+                    title: `Alertas de Inventario (${data.total})`,
+                    html: html,
+                    width: '800px',
+                    confirmButtonColor: '#4F81F7'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudieron cargar las alertas',
+                confirmButtonColor: '#4F81F7'
+            });
+        });
+    }
+    
+    // Ver historial completo
+    function verHistorialCompleto() {
+        Swal.fire({
+            title: 'Cargando historial...',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        fetch('{% url "dashboard:historial_movimientos" %}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let html = '<div class="table-responsive" style="max-height: 500px; overflow-y: auto;">';
+                html += '<table class="table table-sm table-striped">';
+                html += '<thead class="sticky-top bg-white"><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Usuario</th></tr></thead><tbody>';
+                
+                if (data.movimientos.length === 0) {
+                    html += '<tr><td colspan="5" class="text-center">No hay movimientos registrados</td></tr>';
+                } else {
+                    data.movimientos.forEach(mov => {
+                        const badgeClass = mov.tipo === 'Entrada' ? 'success' : 'danger';
+                        html += `<tr>
+                            <td>${mov.fecha}</td>
+                            <td>${mov.producto} - ${mov.ubicacion}</td>
+                            <td><span class="badge bg-${badgeClass}">${mov.tipo}</span></td>
+                            <td>${mov.cantidad} (${mov.cantidad_anterior} → ${mov.cantidad_nueva})</td>
+                            <td>${mov.usuario}</td>
+                        </tr>`;
+                    });
+                }
+                
+                html += '</tbody></table></div>';
+                
+                Swal.fire({
+                    title: 'Historial de Movimientos',
+                    html: html,
+                    width: '1000px',
+                    confirmButtonColor: '#4F81F7',
+                    showCloseButton: true
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo cargar el historial',
+                confirmButtonColor: '#4F81F7'
+            });
+        });
+    }
 </script>
 {% endblock %}

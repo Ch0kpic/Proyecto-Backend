@@ -11,26 +11,33 @@ class ProductoForm(forms.ModelForm):
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'form-input',
-                'placeholder': 'Ej: Chocolatina Jet'
+                'placeholder': 'Ej: Chocolatina Jet',
+                'required': 'required',
+                'maxlength': '150'
             }),
             'descripcion': forms.Textarea(attrs={
                 'class': 'form-input',
                 'placeholder': 'Descripción del producto',
-                'rows': 3
+                'rows': 3,
+                'maxlength': '191'
             }),
             'precio_referencia': forms.NumberInput(attrs={
                 'class': 'form-input',
                 'placeholder': 'Precio en pesos chilenos',
-                'min': '0',
-                'step': '100'
+                'min': '1',
+                'step': '100',
+                'required': 'required'
             })
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['nombre'].label = 'Nombre del Producto'
+        self.fields['nombre'].required = True
         self.fields['descripcion'].label = 'Descripción'
+        self.fields['descripcion'].required = False
         self.fields['precio_referencia'].label = 'Precio de Referencia (pesos chilenos)'
+        self.fields['precio_referencia'].required = True
 
 class InventarioForm(forms.ModelForm):
     """Formulario para crear/editar inventarios"""
@@ -40,24 +47,30 @@ class InventarioForm(forms.ModelForm):
         fields = ['id_producto', 'cantidad_actual', 'ubicacion']
         widgets = {
             'id_producto': forms.Select(attrs={
-                'class': 'form-input'
+                'class': 'form-input',
+                'required': 'required'
             }),
             'cantidad_actual': forms.NumberInput(attrs={
                 'class': 'form-input',
                 'placeholder': 'Cantidad en stock',
-                'min': '0'
+                'min': '0',
+                'required': 'required'
             }),
             'ubicacion': forms.TextInput(attrs={
                 'class': 'form-input',
-                'placeholder': 'Ej: Estante A1, Bodega Principal'
+                'placeholder': 'Ej: Estante A1, Bodega Principal',
+                'required': 'required'
             })
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['id_producto'].label = 'Producto'
+        self.fields['id_producto'].required = True
         self.fields['cantidad_actual'].label = 'Cantidad Actual'
+        self.fields['cantidad_actual'].required = True
         self.fields['ubicacion'].label = 'Ubicación'
+        self.fields['ubicacion'].required = True
         
         # Filtrar productos que ya tienen inventario
         if self.instance.pk is None:  # Solo para nuevos inventarios

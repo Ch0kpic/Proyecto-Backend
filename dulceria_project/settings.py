@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'usuarios.middleware.ForzarCambioContrasenaMiddleware',  # RQ-USR-04: Forzar cambio de contraseña
     'usuarios.middleware.RolMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -171,3 +172,6 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='tu-email@gmail.com')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='tu-app-password')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# URL del sitio para enlaces en correos (RQ-USR-03)
+SITE_URL = config('SITE_URL', default='http://127.0.0.1:8000')

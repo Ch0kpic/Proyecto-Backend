@@ -24,19 +24,24 @@ class UsuarioForm(forms.ModelForm):
                 'class': 'form-input', 
                 'placeholder': 'Nombre completo',
                 'maxlength': '100',
-                'minlength': '3'
+                'minlength': '3',
+                'required': 'required'
             }),
             'correo': forms.EmailInput(attrs={
                 'class': 'form-input', 
                 'placeholder': 'correo@ejemplo.com',
-                'maxlength': '150'
+                'maxlength': '150',
+                'required': 'required'
             }),
             'telefono': forms.TextInput(attrs={
                 'class': 'form-input', 
                 'placeholder': '+56 9 1234 5678',
                 'maxlength': '15'
             }),
-            'id_rol': forms.Select(attrs={'class': 'form-select'}),
+            'id_rol': forms.Select(attrs={
+                'class': 'form-select',
+                'required': 'required'
+            }),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-checkbox'}),
         }
         
@@ -48,9 +53,12 @@ class UsuarioForm(forms.ModelForm):
         # Agregar límites de caracteres a los campos
         self.fields['nombre'].max_length = 100
         self.fields['nombre'].min_length = 3
+        self.fields['nombre'].required = True
         self.fields['correo'].max_length = 150
+        self.fields['correo'].required = True
         self.fields['telefono'].max_length = 15
         self.fields['telefono'].required = False
+        self.fields['id_rol'].required = True
         
         # Si es el admin principal, no permitir cambiar su estado
         if self.is_edit and self.instance and not self.instance.can_be_deactivated():

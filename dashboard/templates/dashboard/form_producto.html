@@ -347,8 +347,8 @@
     </div>
 
     <div class="row">
-        <!-- Formulario de Producto (Lado Izquierdo) -->
-        <div class="col-md-6">
+        <!-- Formulario de Producto -->
+        <div class="col-12">
             <div class="form-container">
                 <div class="form-header">
                     <h5 class="mb-0 d-flex align-items-center">
@@ -630,73 +630,6 @@
                             </button>
                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Lista de Productos (Lado Derecho) -->
-        <div class="col-md-6">
-            <div class="products-list-container">
-                <div class="products-list-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 d-flex align-items-center">
-                        <i class="bi bi-list-check me-3" style="font-size: 1.5rem;"></i>
-                        <span>Productos Registrados</span>
-                    </h5>
-                    <button class="export-btn">
-                        <i class="bi bi-file-earmark-excel me-2"></i>
-                        Exportar
-                    </button>
-                </div>
-                
-                <div class="search-container">
-                    <i class="bi bi-search" style="color: #6b7280;"></i>
-                    <input type="text" class="search-input" placeholder="Buscar por SKU o nombre...">
-                </div>
-                
-                <div class="table-responsive">
-                    <table class="table table-sm mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th><i class="bi bi-upc me-1"></i>SKU</th>
-                                <th><i class="bi bi-tag me-1"></i>Nombre</th>
-                                <th class="text-center"><i class="bi bi-box me-1"></i>Stock</th>
-                                <th class="text-center"><i class="bi bi-gear me-1"></i>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productsList" class="products-list-body">
-                            {% for producto in productos %}
-                            <tr data-product-id="{{ producto.id_producto }}" class="product-item">
-                                <td class="small fw-bold">SKU-{{ producto.id_producto|stringformat:"03d" }}</td>
-                                <td class="small product-name">{{ producto.nombre }}</td>
-                                <td class="text-center">
-                                    <span class="product-stock">0</span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-actions justify-content-center">
-                                        <button class="btn-action btn-edit" 
-                                                data-action="editProduct"
-                                                data-product-id="{{ producto.id_producto }}">
-                                            <i class="bi bi-pencil me-1"></i>Editar
-                                        </button>
-                                        <button class="btn-action btn-delete"
-                                                data-action="deleteProduct" 
-                                                data-product-id="{{ producto.id_producto }}">
-                                            <i class="bi bi-trash me-1"></i>Eliminar
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-5">
-                                    <i class="bi bi-inbox d-block mb-3" style="font-size: 3rem; opacity: 0.3;"></i>
-                                    <h6>No hay productos registrados</h6>
-                                    <p class="small">Comienza agregando tu primer producto</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>

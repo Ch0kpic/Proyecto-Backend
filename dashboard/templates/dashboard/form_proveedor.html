@@ -292,7 +292,10 @@
                             
                             <div class="form-field">
                                 <label class="form-label">RUT <span class="text-muted">(opcional, pyme)</span></label>
-                                <input type="text" class="form-input" name="rut" placeholder="76.542.210-5">
+                                {{ form.rut }}
+                                {% if form.rut.errors %}
+                                    <div class="text-danger small mt-1">{{ form.rut.errors.0 }}</div>
+                                {% endif %}
                             </div>
 
                             <div class="form-field">
@@ -510,7 +513,7 @@
                         <tbody id="proveedoresList">
                             {% for proveedor in proveedores %}
                             <tr data-proveedor-id="{{ proveedor.id_proveedor }}">
-                                <td class="small">{{ proveedor.rut|default:"76.542.210-5" }}</td>
+                                <td class="small">{{ proveedor.rut|default:"-" }}</td>
                                 <td class="small fw-bold">{{ proveedor.nombre }}</td>
                                 <td class="small text-center">
                                     <span class="proveedor-estado estado-activo">ACTIVO</span>
@@ -583,7 +586,7 @@
         row.setAttribute('data-proveedor-id', proveedorData.id);
         
         row.innerHTML = `
-            <td class="small">${proveedorData.rut || '76.542.210-5'}</td>
+            <td class="small">${proveedorData.rut || '-'}</td>
             <td class="small fw-bold">${proveedorData.nombre}</td>
             <td class="small text-center">
                 <span class="proveedor-estado estado-activo">${proveedorData.estado || 'ACTIVO'}</span>

@@ -18,6 +18,321 @@ from productos.models import Producto
 from inventarios.models import Inventario
 from usuarios.models import Usuario, PasswordResetToken
 from .forms import ProductoForm, InventarioForm
+import secrets
+import string
+import re
+
+
+# ========== FUNCIONES AUXILIARES ==========
+
+def generar_contrasena_robusta():
+    """
+    RQ-USR-02: Generar contraseña temporal robusta
+    Requisitos:
+    - Longitud mínima: 8 caracteres
+    - Al menos 1 mayúscula, 1 minúscula, 1 dígito, 1 carácter especial
+    """
+    while True:
+        # Generar contraseña de 12 caracteres
+        mayusculas = string.ascii_uppercase
+        minusculas = string.ascii_lowercase
+        digitos = string.digits
+        especiales = "!@#$%&*"
+        
+        # Asegurar que tenga al menos uno de cada tipo
+        password = [
+            secrets.choice(mayusculas),
+            secrets.choice(minusculas),
+            secrets.choice(digitos),
+            secrets.choice(especiales)
+        ]
+        
+        # Completar hasta 12 caracteres con caracteres aleatorios
+        todos_caracteres = mayusculas + minusculas + digitos + especiales
+        for _ in range(8):  # 12 - 4 = 8
+            password.append(secrets.choice(todos_caracteres))
+        
+        # Mezclar los caracteres
+        secrets.SystemRandom().shuffle(password)
+        password_str = ''.join(password)
+        
+        # Validar que cumple los requisitos
+        if (re.search(r'[A-Z]', password_str) and
+            re.search(r'[a-z]', password_str) and
+            re.search(r'[0-9]', password_str) and
+            re.search(r'[!@#$%&*]', password_str) and
+            len(password_str) >= 8):
+            return password_str
+
+
+def enviar_correo_bienvenida(usuario, temp_password):
+    """
+    RQ-USR-03: Enviar correo con credenciales de acceso
+    Incluye:
+    - Username (email)
+    - Contraseña temporal
+    - Enlace directo al login
+    """
+    try:
+        # URL del sistema (ajustar según tu dominio/puerto)
+        login_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://127.0.0.1:8000'
+        login_url += '/dashboard/login/'
+        
+        # Asunto del correo
+        asunto = f'Bienvenido a Dulcería Lilis - Credenciales de Acceso'
+        
+        # Mensaje en HTML
+        mensaje_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #4F81F7, #3B5998); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                .credentials {{ background: white; padding: 20px; border-left: 4px solid #4F81F7; margin: 20px 0; }}
+                .credential-item {{ margin: 10px 0; }}
+                .credential-label {{ font-weight: bold; color: #4F81F7; }}
+                .credential-value {{ font-family: monospace; background: #f0f0f0; padding: 5px 10px; border-radius: 4px; }}
+                .button {{ display: inline-block; background: #4F81F7; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+                .warning {{ background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }}
+                .footer {{ text-align: center; color: #666; font-size: 12px; margin-top: 30px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🍬 Dulcería Lilis</h1>
+                    <p>Sistema de Gestión</p>
+                </div>
+                <div class="content">
+                    <h2>¡Bienvenido/a {usuario.nombre}!</h2>
+                    <p>Se ha creado una cuenta de acceso para ti en el Sistema de Gestión de Dulcería Lilis.</p>
+                    
+                    <div class="credentials">
+                        <h3>Tus Credenciales de Acceso:</h3>
+                        <div class="credential-item">
+                            <span class="credential-label">Usuario:</span><br>
+                            <span class="credential-value">{usuario.username}</span>
+                        </div>
+                        <div class="credential-item">
+                            <span class="credential-label">Contraseña Temporal:</span><br>
+                            <span class="credential-value">{temp_password}</span>
+                        </div>
+                        <div class="credential-item">
+                            <span class="credential-label">Rol:</span><br>
+                            <span class="credential-value">{usuario.id_rol.nombre}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>⚠️ Importante:</strong>
+                        <ul>
+                            <li>Esta contraseña es temporal y debe ser cambiada en tu primer inicio de sesión</li>
+                            <li>Por seguridad, no compartas estas credenciales con nadie</li>
+                            <li>Si no solicitaste esta cuenta, contacta al administrador</li>
+                        </ul>
+                    </div>
+                    
+                    <center>
+                        <a href="{login_url}" class="button">Iniciar Sesión Ahora</a>
+                    </center>
+                    
+                    <p style="margin-top: 30px; color: #666; font-size: 14px;">
+                        Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                        <a href="{login_url}">{login_url}</a>
+                    </p>
+                </div>
+                <div class="footer">
+                    <p>Este es un correo automático, por favor no responder.</p>
+                    <p>&copy; {datetime.now().year} Dulcería Lilis - Todos los derechos reservados</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Mensaje en texto plano (fallback)
+        mensaje_texto = f"""
+Bienvenido/a {usuario.nombre}!
+
+Se ha creado una cuenta de acceso para ti en el Sistema de Gestión de Dulcería Lilis.
+
+CREDENCIALES DE ACCESO:
+Usuario: {usuario.username}
+Contraseña Temporal: {temp_password}
+Rol: {usuario.id_rol.nombre}
+
+IMPORTANTE:
+- Esta contraseña es temporal y debe ser cambiada en tu primer inicio de sesión
+- Por seguridad, no compartas estas credenciales con nadie
+- Si no solicitaste esta cuenta, contacta al administrador
+
+Para acceder al sistema, visita:
+{login_url}
+
+---
+Este es un correo automático, por favor no responder.
+© {datetime.now().year} Dulcería Lilis
+        """
+        
+        # Enviar correo
+        send_mail(
+            subject=asunto,
+            message=mensaje_texto,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[usuario.correo],
+            html_message=mensaje_html,
+            fail_silently=False,
+        )
+        
+        return True
+    except Exception as e:
+        print(f"Error al enviar correo de bienvenida: {e}")
+        raise
+
+
+def enviar_correo_reset_password(usuario, temp_password, admin_nombre):
+    """
+    RQ-USR-06: Enviar correo cuando admin resetea contraseña
+    Similar al correo de bienvenida pero indica que fue un reset administrativo
+    """
+    try:
+        # URL del sistema
+        login_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://127.0.0.1:8000'
+        login_url += '/dashboard/login/'
+        
+        # Asunto del correo
+        asunto = f'Dulcería Lilis - Tu contraseña ha sido reseteada'
+        
+        # Mensaje en HTML
+        mensaje_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #4F81F7, #3B5998); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                .credentials {{ background: white; padding: 20px; border-left: 4px solid #ffc107; margin: 20px 0; }}
+                .credential-item {{ margin: 10px 0; }}
+                .credential-label {{ font-weight: bold; color: #4F81F7; }}
+                .credential-value {{ font-family: monospace; background: #f0f0f0; padding: 5px 10px; border-radius: 4px; }}
+                .button {{ display: inline-block; background: #4F81F7; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+                .warning {{ background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }}
+                .alert {{ background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; }}
+                .footer {{ text-align: center; color: #666; font-size: 12px; margin-top: 30px; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🍬 Dulcería Lilis</h1>
+                    <p>Sistema de Gestión</p>
+                </div>
+                <div class="content">
+                    <h2>Contraseña Reseteada</h2>
+                    <p>Hola {usuario.nombre},</p>
+                    <p>El administrador <strong>{admin_nombre}</strong> ha reseteado tu contraseña en el Sistema de Gestión de Dulcería Lilis.</p>
+                    
+                    <div class="alert">
+                        <strong>🔐 Acción de Seguridad:</strong>
+                        <p>Si NO solicitaste este cambio, contacta inmediatamente al administrador del sistema.</p>
+                    </div>
+                    
+                    <div class="credentials">
+                        <h3>Tus Nuevas Credenciales:</h3>
+                        <div class="credential-item">
+                            <span class="credential-label">Usuario:</span><br>
+                            <span class="credential-value">{usuario.username}</span>
+                        </div>
+                        <div class="credential-item">
+                            <span class="credential-label">Nueva Contraseña Temporal:</span><br>
+                            <span class="credential-value">{temp_password}</span>
+                        </div>
+                        <div class="credential-item">
+                            <span class="credential-label">Rol:</span><br>
+                            <span class="credential-value">{usuario.id_rol.nombre}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>⚠️ Importante:</strong>
+                        <ul>
+                            <li>Esta es una contraseña temporal que debes cambiar en tu próximo inicio de sesión</li>
+                            <li>Tu contraseña anterior ya NO es válida</li>
+                            <li>Por seguridad, no compartas estas credenciales con nadie</li>
+                            <li>Cambia tu contraseña por una que solo tú conozcas</li>
+                        </ul>
+                    </div>
+                    
+                    <center>
+                        <a href="{login_url}" class="button">Iniciar Sesión Ahora</a>
+                    </center>
+                    
+                    <p style="margin-top: 30px; color: #666; font-size: 14px;">
+                        Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                        <a href="{login_url}">{login_url}</a>
+                    </p>
+                </div>
+                <div class="footer">
+                    <p>Este es un correo automático, por favor no responder.</p>
+                    <p>&copy; {datetime.now().year} Dulcería Lilis - Todos los derechos reservados</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        # Mensaje en texto plano (fallback)
+        mensaje_texto = f"""
+Contraseña Reseteada - Dulcería Lilis
+
+Hola {usuario.nombre},
+
+El administrador {admin_nombre} ha reseteado tu contraseña en el Sistema de Gestión de Dulcería Lilis.
+
+🔐 ACCIÓN DE SEGURIDAD:
+Si NO solicitaste este cambio, contacta inmediatamente al administrador del sistema.
+
+NUEVAS CREDENCIALES:
+Usuario: {usuario.username}
+Nueva Contraseña Temporal: {temp_password}
+Rol: {usuario.id_rol.nombre}
+
+IMPORTANTE:
+- Esta es una contraseña temporal que debes cambiar en tu próximo inicio de sesión
+- Tu contraseña anterior ya NO es válida
+- Por seguridad, no compartas estas credenciales con nadie
+- Cambia tu contraseña por una que solo tú conozcas
+
+Para acceder al sistema, visita:
+{login_url}
+
+---
+Este es un correo automático, por favor no responder.
+© {datetime.now().year} Dulcería Lilis
+        """
+        
+        # Enviar correo
+        send_mail(
+            subject=asunto,
+            message=mensaje_texto,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[usuario.correo],
+            html_message=mensaje_html,
+            fail_silently=False,
+        )
+        
+        return True
+    except Exception as e:
+        print(f"Error al enviar correo de reset de contraseña: {e}")
+        raise
+
+
+# ========== VISTAS ==========
 
 def login_view(request):
     """Vista de login personalizada"""
@@ -142,7 +457,11 @@ def productos_view(request):
 
 @login_required
 def inventarios_view(request):
-    """Vista de inventarios"""
+    """Vista de inventarios con búsqueda avanzada y alertas"""
+    from inventarios.models import AlertaInventario, MovimientoInventario
+    from proveedores.models import Proveedor
+    from django.db.models import Q
+    
     user = request.user
     
     # Verificar permisos según rol
@@ -151,28 +470,84 @@ def inventarios_view(request):
     es_bodeguero = rol_nombre == 'Bodeguero'
     puede_editar = user.is_superuser or rol_nombre in ['Administrador', 'Bodeguero']
     
+    # Obtener inventarios
     inventarios = Inventario.objects.select_related('id_producto').all()
+    
+    # Búsqueda avanzada
+    search = request.GET.get('search', '')
+    if search:
+        inventarios = inventarios.filter(
+            Q(id_producto__nombre__icontains=search) |
+            Q(ubicacion__icontains=search) |
+            Q(id_producto__descripcion__icontains=search)
+        )
+    
+    # Filtros
+    nivel_stock = request.GET.get('nivel_stock')
+    ubicacion = request.GET.get('ubicacion')
+    
+    # Filtrar por nivel de stock
+    if nivel_stock:
+        if nivel_stock == 'critico':
+            inventarios = [inv for inv in inventarios if inv.cantidad_actual == 0]
+        elif nivel_stock == 'bajo':
+            inventarios = [inv for inv in inventarios if inv.necesita_reabastecimiento and inv.cantidad_actual > 0]
+        elif nivel_stock == 'medio':
+            inventarios = [inv for inv in inventarios if inv.nivel_stock == 'medio']
+        elif nivel_stock == 'alto':
+            inventarios = [inv for inv in inventarios if inv.nivel_stock == 'alto']
+    
+    # Filtrar por ubicación
+    if ubicacion:
+        inventarios = inventarios.filter(ubicacion__icontains=ubicacion) if hasattr(inventarios, 'filter') else [inv for inv in inventarios if ubicacion.lower() in inv.ubicacion.lower()]
+    
+    # Convertir a lista si es queryset
+    if hasattr(inventarios, 'all'):
+        inventarios = list(inventarios)
+    
+    # Ordenamiento
+    order_by = request.GET.get('order_by', 'id_producto__nombre')
+    order_direction = request.GET.get('order_direction', 'asc')
+    
+    # Obtener alertas activas
+    alertas_activas = AlertaInventario.objects.filter(resuelta=False).count()
+    alertas_criticas = AlertaInventario.objects.filter(resuelta=False, tipo_alerta='stock_critico').count()
+    
+    # Calcular estadísticas
+    total_productos = len(inventarios)
+    stock_critico = sum(1 for inv in inventarios if inv.cantidad_actual == 0)
+    stock_bajo = sum(1 for inv in inventarios if inv.necesita_reabastecimiento and inv.cantidad_actual > 0)
+    stock_medio = sum(1 for inv in inventarios if inv.nivel_stock == 'medio')
+    stock_alto = sum(1 for inv in inventarios if inv.nivel_stock == 'alto')
+    
+    # Obtener ubicaciones únicas para filtro
+    ubicaciones = Inventario.objects.values_list('ubicacion', flat=True).distinct()
+    
+    # Obtener proveedores para el formulario
+    proveedores = Proveedor.objects.all().order_by('nombre')
+    
+    # Obtener movimientos recientes (últimos 20)
+    movimientos_recientes = MovimientoInventario.objects.select_related(
+        'inventario__id_producto', 'usuario'
+    ).order_by('-fecha_movimiento')[:20]
+    
     now = timezone.now()
-    
-    # Mock data para proveedores
-    class MockProveedor:
-        def __init__(self, id_proveedor, nombre):
-            self.id_proveedor = id_proveedor
-            self.nombre = nombre
-    
-    proveedores = [
-        MockProveedor(1, 'Distribuidora Nacional'),
-        MockProveedor(2, 'Dulces Premium SAC'),
-        MockProveedor(3, 'Confitería del Norte'),
-    ]
     
     context = {
         'inventarios': inventarios,
+        'total_productos': total_productos,
+        'stock_alto': stock_alto,
+        'stock_medio': stock_medio,
+        'stock_bajo': stock_bajo,
+        'stock_critico': stock_critico,
+        'alertas_activas': alertas_activas,
+        'alertas_criticas': alertas_criticas,
+        'ubicaciones': ubicaciones,
         'proveedores': proveedores,
-        'total_productos': inventarios.count(),
-        'stock_alto': 0,  # Calcular basado en lógica de stock
-        'stock_medio': 0,
-        'stock_bajo': 0,
+        'movimientos_recientes': movimientos_recientes,
+        'search': search,
+        'nivel_stock_filtro': nivel_stock,
+        'ubicacion_filtro': ubicacion,
         'today': now.date(),
         'user': request.user,
         'es_vendedor': es_vendedor,
@@ -324,13 +699,34 @@ def guardar_proveedor(request):
         
         # Validaciones
         if not nombre:
-            return JsonResponse({'success': False, 'message': 'El nombre es requerido'}, status=400)
+            return JsonResponse({
+                'success': False, 
+                'errors': {'nombre': ['El campo Nombre es requerido']}
+            }, status=400)
         
         if len(nombre) > 150:
-            return JsonResponse({'success': False, 'message': 'El nombre no puede exceder 150 caracteres'}, status=400)
+            return JsonResponse({
+                'success': False, 
+                'errors': {'nombre': ['El nombre no puede exceder 150 caracteres']}
+            }, status=400)
+        
+        if not contacto:
+            return JsonResponse({
+                'success': False, 
+                'errors': {'contacto': ['El campo Contacto es requerido']}
+            }, status=400)
         
         if len(contacto) > 200:
-            return JsonResponse({'success': False, 'message': 'El contacto no puede exceder 200 caracteres'}, status=400)
+            return JsonResponse({
+                'success': False, 
+                'errors': {'contacto': ['El contacto no puede exceder 200 caracteres']}
+            }, status=400)
+        
+        if not direccion:
+            return JsonResponse({
+                'success': False, 
+                'errors': {'direccion': ['El campo Dirección es requerido']}
+            }, status=400)
         
         # Construir dirección completa con información chilena
         direccion_completa = direccion
@@ -338,6 +734,12 @@ def guardar_proveedor(request):
             direccion_completa += f", {comuna}"
         if region:
             direccion_completa += f", {region}"
+        
+        if len(direccion_completa) > 200:
+            return JsonResponse({
+                'success': False, 
+                'errors': {'direccion': ['La dirección completa no puede exceder 200 caracteres']}
+            }, status=400)
         
         # Guardar datos adicionales en JSON para recuperarlos después
         datos_adicionales = {
@@ -356,7 +758,7 @@ def guardar_proveedor(request):
             proveedor = Proveedor.objects.get(id_proveedor=proveedor_id)
             proveedor.nombre = nombre
             proveedor.contacto = contacto
-            proveedor.direccion = direccion_completa[:200]  # Limitar a 200 caracteres
+            proveedor.direccion = direccion_completa
             proveedor.save()
             mensaje = f'Proveedor "{nombre}" actualizado exitosamente'
             
@@ -367,7 +769,7 @@ def guardar_proveedor(request):
             proveedor = Proveedor.objects.create(
                 nombre=nombre,
                 contacto=contacto,
-                direccion=direccion_completa[:200]
+                direccion=direccion_completa
             )
             mensaje = f'Proveedor "{nombre}" creado exitosamente'
         
@@ -691,6 +1093,329 @@ def editar_inventario(request, inventario_id):
         'inventario': inventario
     }
     return render(request, 'dashboard/form_inventario.html', context)
+
+@login_required
+def registrar_movimiento_inventario(request):
+    """Vista para registrar movimientos de inventario (entrada/salida)"""
+    from inventarios.models import MovimientoInventario, AlertaInventario
+    from django.db import transaction
+    
+    user = request.user
+    
+    # Solo administradores y bodegueros pueden registrar movimientos
+    if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre in ['Administrador', 'Bodeguero'])):
+        return JsonResponse({'success': False, 'message': 'No tienes permisos'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    
+    try:
+        inventario_id = request.POST.get('inventario_id')
+        tipo_movimiento = request.POST.get('tipo_movimiento')
+        cantidad = int(request.POST.get('cantidad', 0))
+        proveedor = request.POST.get('proveedor', '')
+        motivo = request.POST.get('motivo', '')
+        
+        if not inventario_id or not tipo_movimiento or cantidad <= 0:
+            return JsonResponse({'success': False, 'message': 'Datos incompletos'})
+        
+        inventario = get_object_or_404(Inventario, id_inventario=inventario_id)
+        cantidad_anterior = inventario.cantidad_actual
+        
+        # Calcular nueva cantidad según tipo de movimiento
+        if tipo_movimiento == 'entrada':
+            cantidad_nueva = cantidad_anterior + cantidad
+        elif tipo_movimiento == 'salida':
+            if cantidad > cantidad_anterior:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Stock insuficiente. Disponible: {cantidad_anterior}'
+                })
+            cantidad_nueva = cantidad_anterior - cantidad
+        elif tipo_movimiento == 'ajuste':
+            cantidad_nueva = cantidad
+        else:
+            return JsonResponse({'success': False, 'message': 'Tipo de movimiento no válido'})
+        
+        # Usar transacción para asegurar consistencia
+        with transaction.atomic():
+            # Registrar movimiento
+            movimiento = MovimientoInventario.objects.create(
+                inventario=inventario,
+                tipo_movimiento=tipo_movimiento,
+                cantidad=cantidad,
+                cantidad_anterior=cantidad_anterior,
+                cantidad_nueva=cantidad_nueva,
+                usuario=user,
+                proveedor=proveedor if proveedor else None,
+                motivo=motivo if motivo else None
+            )
+            
+            # Actualizar inventario
+            inventario.cantidad_actual = cantidad_nueva
+            inventario.save()
+            
+            # Verificar y crear alertas si es necesario
+            if inventario.necesita_reabastecimiento:
+                # Crear alerta de stock bajo si no existe una sin resolver
+                alerta_existente = AlertaInventario.objects.filter(
+                    inventario=inventario,
+                    tipo_alerta='stock_bajo',
+                    resuelta=False
+                ).first()
+                
+                if not alerta_existente:
+                    AlertaInventario.objects.create(
+                        inventario=inventario,
+                        tipo_alerta='stock_bajo' if cantidad_nueva > 0 else 'stock_critico'
+                    )
+            else:
+                # Resolver alertas si el stock vuelve a estar bien
+                AlertaInventario.objects.filter(
+                    inventario=inventario,
+                    resuelta=False
+                ).update(resuelta=True, fecha_resolucion=timezone.now())
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Movimiento de {tipo_movimiento} registrado correctamente',
+            'data': {
+                'cantidad_anterior': cantidad_anterior,
+                'cantidad_nueva': cantidad_nueva,
+                'nivel_stock': inventario.nivel_stock
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@login_required
+def historial_movimientos(request, inventario_id=None):
+    """Vista para obtener historial de movimientos"""
+    from inventarios.models import MovimientoInventario
+    
+    user = request.user
+    
+    # Verificar permisos
+    if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre in ['Administrador', 'Bodeguero', 'Vendedor'])):
+        return JsonResponse({'success': False, 'message': 'No tienes permisos'}, status=403)
+    
+    try:
+        # Obtener movimientos
+        if inventario_id:
+            movimientos = MovimientoInventario.objects.filter(inventario_id=inventario_id)
+        else:
+            movimientos = MovimientoInventario.objects.all()
+        
+        # Filtros opcionales
+        tipo = request.GET.get('tipo')
+        fecha_desde = request.GET.get('fecha_desde')
+        fecha_hasta = request.GET.get('fecha_hasta')
+        
+        if tipo:
+            movimientos = movimientos.filter(tipo_movimiento=tipo)
+        if fecha_desde:
+            movimientos = movimientos.filter(fecha_movimiento__gte=fecha_desde)
+        if fecha_hasta:
+            movimientos = movimientos.filter(fecha_movimiento__lte=fecha_hasta)
+        
+        # Preparar datos
+        data = [{
+            'id': mov.id_movimiento,
+            'producto': mov.inventario.id_producto.nombre,
+            'ubicacion': mov.inventario.ubicacion,
+            'tipo': mov.get_tipo_movimiento_display(),
+            'cantidad': mov.cantidad,
+            'cantidad_anterior': mov.cantidad_anterior,
+            'cantidad_nueva': mov.cantidad_nueva,
+            'fecha': mov.fecha_movimiento.strftime('%d/%m/%Y %H:%M'),
+            'usuario': mov.usuario.nombre if mov.usuario else 'Sistema',
+            'proveedor': mov.proveedor or '-',
+            'motivo': mov.motivo or '-'
+        } for mov in movimientos[:100]]  # Limitar a 100 registros
+        
+        return JsonResponse({'success': True, 'movimientos': data})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@login_required
+def alertas_inventario(request):
+    """Vista para obtener alertas activas de inventario"""
+    from inventarios.models import AlertaInventario
+    
+    user = request.user
+    
+    try:
+        # Obtener alertas no resueltas
+        alertas = AlertaInventario.objects.filter(resuelta=False).select_related('inventario__id_producto')
+        
+        data = [{
+            'id': alerta.id_alerta,
+            'producto': alerta.inventario.id_producto.nombre,
+            'ubicacion': alerta.inventario.ubicacion,
+            'tipo': alerta.get_tipo_alerta_display(),
+            'stock_actual': alerta.inventario.cantidad_actual,
+            'stock_minimo': alerta.inventario.stock_minimo,
+            'fecha': alerta.fecha_creacion.strftime('%d/%m/%Y %H:%M'),
+        } for alerta in alertas]
+        
+        return JsonResponse({'success': True, 'alertas': data, 'total': len(data)})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@login_required
+def exportar_inventario_excel(request):
+    """Exportar inventario completo a Excel"""
+    from openpyxl.utils import get_column_letter
+    
+    user = request.user
+    
+    try:
+        # Obtener inventarios
+        inventarios = Inventario.objects.select_related('id_producto').all()
+        
+        # Crear workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Inventario"
+        
+        # Estilos
+        header_fill = PatternFill(start_color="4F81F7", end_color="4F81F7", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=12)
+        border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Encabezados
+        headers = ['ID', 'Producto', 'Ubicación', 'Stock Actual', 'Stock Mínimo', 'Stock Máximo', 'Nivel', 'Última Actualización']
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            cell.border = border
+        
+        # Datos
+        for row, inv in enumerate(inventarios, 2):
+            ws.cell(row=row, column=1, value=inv.id_inventario).border = border
+            ws.cell(row=row, column=2, value=inv.id_producto.nombre).border = border
+            ws.cell(row=row, column=3, value=inv.ubicacion).border = border
+            ws.cell(row=row, column=4, value=inv.cantidad_actual).border = border
+            ws.cell(row=row, column=5, value=inv.stock_minimo).border = border
+            ws.cell(row=row, column=6, value=inv.stock_maximo).border = border
+            ws.cell(row=row, column=7, value=inv.nivel_stock.upper()).border = border
+            ws.cell(row=row, column=8, value=inv.fecha_ultima_actualizacion.strftime('%d/%m/%Y %H:%M')).border = border
+            
+            # Color según nivel de stock
+            nivel_cell = ws.cell(row=row, column=7)
+            if inv.nivel_stock == 'critico':
+                nivel_cell.fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")
+                nivel_cell.font = Font(color="FFFFFF", bold=True)
+            elif inv.nivel_stock == 'bajo':
+                nivel_cell.fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type="solid")
+                nivel_cell.font = Font(color="FFFFFF", bold=True)
+            elif inv.nivel_stock == 'alto':
+                nivel_cell.fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="solid")
+        
+        # Ajustar anchos
+        column_widths = [8, 35, 25, 15, 15, 15, 12, 20]
+        for i, width in enumerate(column_widths, 1):
+            ws.column_dimensions[get_column_letter(i)].width = width
+        
+        # Respuesta
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="Inventario_Lilis_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        messages.error(request, f'Error al exportar: {str(e)}')
+        return redirect('dashboard:inventarios')
+
+@login_required
+def exportar_movimientos_excel(request):
+    """Exportar historial de movimientos a Excel"""
+    from inventarios.models import MovimientoInventario
+    from openpyxl.utils import get_column_letter
+    
+    user = request.user
+    
+    try:
+        # Obtener movimientos (últimos 1000)
+        movimientos = MovimientoInventario.objects.select_related('inventario__id_producto', 'usuario').all()[:1000]
+        
+        # Crear workbook
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Movimientos"
+        
+        # Estilos
+        header_fill = PatternFill(start_color="4F81F7", end_color="4F81F7", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=12)
+        border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Encabezados
+        headers = ['ID', 'Fecha', 'Producto', 'Ubicación', 'Tipo', 'Cantidad', 'Stock Anterior', 'Stock Nuevo', 'Usuario', 'Proveedor', 'Motivo']
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col)
+            cell.value = header
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            cell.border = border
+        
+        # Datos
+        for row, mov in enumerate(movimientos, 2):
+            ws.cell(row=row, column=1, value=mov.id_movimiento).border = border
+            ws.cell(row=row, column=2, value=mov.fecha_movimiento.strftime('%d/%m/%Y %H:%M')).border = border
+            ws.cell(row=row, column=3, value=mov.inventario.id_producto.nombre).border = border
+            ws.cell(row=row, column=4, value=mov.inventario.ubicacion).border = border
+            ws.cell(row=row, column=5, value=mov.get_tipo_movimiento_display()).border = border
+            ws.cell(row=row, column=6, value=mov.cantidad).border = border
+            ws.cell(row=row, column=7, value=mov.cantidad_anterior).border = border
+            ws.cell(row=row, column=8, value=mov.cantidad_nueva).border = border
+            ws.cell(row=row, column=9, value=mov.usuario.nombre if mov.usuario else 'Sistema').border = border
+            ws.cell(row=row, column=10, value=mov.proveedor or '-').border = border
+            ws.cell(row=row, column=11, value=mov.motivo or '-').border = border
+            
+            # Color según tipo
+            tipo_cell = ws.cell(row=row, column=5)
+            if mov.tipo_movimiento == 'entrada':
+                tipo_cell.fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+            elif mov.tipo_movimiento == 'salida':
+                tipo_cell.fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+        
+        # Ajustar anchos
+        column_widths = [8, 18, 30, 20, 15, 12, 15, 15, 20, 25, 35]
+        for i, width in enumerate(column_widths, 1):
+            ws.column_dimensions[get_column_letter(i)].width = width
+        
+        # Respuesta
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="Movimientos_Inventario_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        messages.error(request, f'Error al exportar: {str(e)}')
+        return redirect('dashboard:inventarios')
 
 def forgot_password_view(request):
     """Vista para recuperación de contraseña"""
@@ -1023,9 +1748,9 @@ def guardar_usuario(request):
                     'errors': {'email': ['Este correo electrónico ya está registrado']}
                 })
             
-            # Generar contraseña temporal aleatoria (12 caracteres con letras, números y símbolos)
-            alphabet = string.ascii_letters + string.digits + "!@#$%&*"
-            temp_password = ''.join(secrets.choice(alphabet) for i in range(12))
+            # RQ-USR-02: Generar contraseña temporal robusta
+            # Requisitos: min 8 caracteres, 1 mayúscula, 1 minúscula, 1 dígito, 1 especial
+            temp_password = generar_contrasena_robusta()
             
             # Crear usuario
             usuario = Usuario(
@@ -1041,6 +1766,13 @@ def guardar_usuario(request):
             usuario.set_password(temp_password)
             usuario.save()
             action = 'creado'
+            
+            # RQ-USR-03: Enviar correo con credenciales
+            try:
+                enviar_correo_bienvenida(usuario, temp_password)
+            except Exception as email_error:
+                print(f"Error al enviar correo: {email_error}")
+                # No fallar la creación si el correo falla
         
         # Preparar respuesta
         response_data = {
@@ -1147,6 +1879,68 @@ def cambiar_contrasena_obligatorio(request):
     return render(request, 'dashboard/cambiar_contrasena_obligatorio.html', {
         'user': user
     })
+
+@login_required
+def resetear_contrasena_usuario(request, usuario_id):
+    """
+    RQ-USR-06: Reset de contraseña por administrador
+    Genera nueva clave temporal robusta, marca flag de cambio obligatorio,
+    y envía correo al usuario con las nuevas credenciales.
+    """
+    user = request.user
+    
+    # Solo administradores pueden resetear contraseñas
+    if not (user.is_superuser or (hasattr(user, 'id_rol') and user.id_rol.nombre == 'Administrador')):
+        return JsonResponse({'success': False, 'message': 'No tienes permisos para realizar esta acción'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    
+    try:
+        from usuarios.models import Usuario
+        
+        # Obtener el usuario
+        usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
+        
+        # No permitir resetear la propia contraseña con esta función
+        if usuario.id_usuario == user.id_usuario:
+            return JsonResponse({
+                'success': False,
+                'message': 'No puedes resetear tu propia contraseña. Usa la opción de cambio de contraseña.'
+            })
+        
+        # RQ-USR-06: Generar nueva contraseña temporal robusta
+        nueva_temp_password = generar_contrasena_robusta()
+        
+        # Actualizar usuario
+        usuario.set_password(nueva_temp_password)
+        usuario.forzar_cambio_contrasena = True  # Marcar flag de cambio obligatorio
+        usuario.save()
+        
+        # RQ-USR-06: Enviar correo con nueva contraseña temporal
+        try:
+            enviar_correo_reset_password(usuario, nueva_temp_password, user.nombre)
+        except Exception as email_error:
+            print(f"Error al enviar correo de reset: {email_error}")
+            # Continuar aunque falle el correo (la contraseña ya fue reseteada)
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Contraseña reseteada correctamente para {usuario.nombre}. Se ha enviado un correo con la nueva contraseña temporal.',
+            'temp_password': nueva_temp_password,  # Mostrar al admin por si falla el correo
+            'usuario': {
+                'id': usuario.id_usuario,
+                'nombre': usuario.nombre,
+                'email': usuario.correo
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al resetear contraseña: {str(e)}'
+        }, status=500)
+
 
 @login_required
 def cambiar_estado_usuario(request, usuario_id):
@@ -1429,23 +2223,57 @@ def actualizar_producto(request):
         producto_id = request.POST.get('product_id')
         nombre = request.POST.get('nombre', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
-        precio_referencia = request.POST.get('precio_referencia')
+        precio_referencia = request.POST.get('precio_referencia', '').strip()
         
         # Validaciones
         if not producto_id:
-            return JsonResponse({'success': False, 'message': 'ID de producto no proporcionado'})
+            return JsonResponse({
+                'success': False, 
+                'errors': {'product_id': ['ID de producto no proporcionado']}
+            }, status=400)
         
         if not nombre:
-            return JsonResponse({'success': False, 'message': 'El nombre es requerido'})
+            return JsonResponse({
+                'success': False, 
+                'errors': {'nombre': ['El campo Nombre es requerido']}
+            }, status=400)
         
-        if not precio_referencia or int(precio_referencia) <= 0:
-            return JsonResponse({'success': False, 'message': 'El precio debe ser mayor a 0'})
+        if len(nombre) > 150:
+            return JsonResponse({
+                'success': False, 
+                'errors': {'nombre': ['El nombre no puede exceder 150 caracteres']}
+            }, status=400)
+        
+        if descripcion and len(descripcion) > 191:
+            return JsonResponse({
+                'success': False, 
+                'errors': {'descripcion': ['La descripción no puede exceder 191 caracteres']}
+            }, status=400)
+        
+        if not precio_referencia:
+            return JsonResponse({
+                'success': False, 
+                'errors': {'precio_referencia': ['El campo Precio de Referencia es requerido']}
+            }, status=400)
+        
+        try:
+            precio_valor = int(precio_referencia)
+            if precio_valor <= 0:
+                return JsonResponse({
+                    'success': False, 
+                    'errors': {'precio_referencia': ['El precio debe ser mayor a 0']}
+                }, status=400)
+        except ValueError:
+            return JsonResponse({
+                'success': False, 
+                'errors': {'precio_referencia': ['El precio debe ser un número válido']}
+            }, status=400)
         
         # Actualizar producto
         producto = Producto.objects.get(id_producto=producto_id)
         producto.nombre = nombre
         producto.descripcion = descripcion
-        producto.precio_referencia = int(precio_referencia)
+        producto.precio_referencia = precio_valor
         producto.save()
         
         return JsonResponse({

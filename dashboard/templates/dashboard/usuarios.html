@@ -306,6 +306,9 @@
                                         <i class="bi bi-shield-lock"></i>
                                     </button>
                                 {% else %}
+                                    <button class="btn btn-outline-info btn-sm" onclick="resetPassword('{{ usuario.id_usuario }}', '{{ usuario.nombre }}')" title="Resetear Contraseña">
+                                        <i class="bi bi-key"></i>
+                                    </button>
                                     {% if usuario.is_active %}
                                         <button class="btn btn-outline-warning btn-sm" onclick="toggleUserStatus('{{ usuario.id_usuario }}', false)" title="Desactivar">
                                             <i class="bi bi-pause-circle"></i>
@@ -744,6 +747,93 @@
                         icon: 'error',
                         title: 'Error',
                         text: 'Ocurrió un error al eliminar el usuario',
+                        confirmButtonColor: '#dc2626'
+                    });
+                });
+            }
+        });
+    }
+    
+    // RQ-USR-06: Reset de contraseña por administrador
+    function resetPassword(userId, userName) {
+        Swal.fire({
+            title: '¿Resetear contraseña?',
+            html: `
+                <p>Se generará una nueva contraseña temporal para:</p>
+                <p><strong>${userName}</strong></p>
+                <div class="alert alert-warning mt-3" style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; text-align: left;">
+                    <strong>⚠️ Importante:</strong>
+                    <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                        <li>Se enviará un correo al usuario con la nueva contraseña</li>
+                        <li>La contraseña actual dejará de funcionar inmediatamente</li>
+                        <li>El usuario deberá cambiarla en su próximo inicio de sesión</li>
+                    </ul>
+                </div>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#4F81F7',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, resetear',
+            cancelButtonText: 'Cancelar',
+            width: '500px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Reseteando contraseña...',
+                    html: 'Por favor espera',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Llamar al endpoint
+                fetch(`/dashboard/usuarios/resetear-password/${userId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrftoken
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Contraseña reseteada!',
+                            html: `
+                                <p>${data.message}</p>
+                                <div class="mt-3 p-3" style="background: #f0f0f0; border-radius: 8px;">
+                                    <p class="mb-2"><strong>Nueva contraseña temporal:</strong></p>
+                                    <p style="font-family: monospace; font-size: 18px; color: #dc2626; font-weight: bold;">${data.temp_password}</p>
+                                    <p class="mt-2 text-muted" style="font-size: 12px;">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Guarda esta contraseña. El usuario también la recibirá por correo.
+                                    </p>
+                                </div>
+                            `,
+                            confirmButtonColor: '#4F81F7',
+                            width: '600px'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message,
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al resetear la contraseña',
                         confirmButtonColor: '#dc2626'
                     });
                 });

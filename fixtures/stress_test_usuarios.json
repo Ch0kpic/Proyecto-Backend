@@ -1,0 +1,1702 @@
+[
+  {
+    "model": "usuarios.usuario",
+    "pk": 11,
+    "fields": {
+      "username": "usuario.test1@dulcerialilis.cl",
+      "email": "usuario.test1@dulcerialilis.cl",
+      "correo": "usuario.test1@dulcerialilis.cl",
+      "nombre": "Ana Fernández",
+      "telefono": "+56 9 72607869",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 12,
+    "fields": {
+      "username": "usuario.test2@dulcerialilis.cl",
+      "email": "usuario.test2@dulcerialilis.cl",
+      "correo": "usuario.test2@dulcerialilis.cl",
+      "nombre": "Laura González",
+      "telefono": "+56 9 95154080",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 13,
+    "fields": {
+      "username": "usuario.test3@dulcerialilis.cl",
+      "email": "usuario.test3@dulcerialilis.cl",
+      "correo": "usuario.test3@dulcerialilis.cl",
+      "nombre": "Laura González",
+      "telefono": "+56 9 45898849",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 14,
+    "fields": {
+      "username": "usuario.test4@dulcerialilis.cl",
+      "email": "usuario.test4@dulcerialilis.cl",
+      "correo": "usuario.test4@dulcerialilis.cl",
+      "nombre": "María Fernández",
+      "telefono": "+56 9 26325598",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 15,
+    "fields": {
+      "username": "usuario.test5@dulcerialilis.cl",
+      "email": "usuario.test5@dulcerialilis.cl",
+      "correo": "usuario.test5@dulcerialilis.cl",
+      "nombre": "María Pérez",
+      "telefono": "+56 9 34502420",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 16,
+    "fields": {
+      "username": "usuario.test6@dulcerialilis.cl",
+      "email": "usuario.test6@dulcerialilis.cl",
+      "correo": "usuario.test6@dulcerialilis.cl",
+      "nombre": "Juan Pérez",
+      "telefono": "+56 9 38055093",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 17,
+    "fields": {
+      "username": "usuario.test7@dulcerialilis.cl",
+      "email": "usuario.test7@dulcerialilis.cl",
+      "correo": "usuario.test7@dulcerialilis.cl",
+      "nombre": "Carlos González",
+      "telefono": "+56 9 40801815",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 18,
+    "fields": {
+      "username": "usuario.test8@dulcerialilis.cl",
+      "email": "usuario.test8@dulcerialilis.cl",
+      "correo": "usuario.test8@dulcerialilis.cl",
+      "nombre": "Laura López",
+      "telefono": "+56 9 48640673",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 19,
+    "fields": {
+      "username": "usuario.test9@dulcerialilis.cl",
+      "email": "usuario.test9@dulcerialilis.cl",
+      "correo": "usuario.test9@dulcerialilis.cl",
+      "nombre": "Carlos González",
+      "telefono": "+56 9 65178141",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 20,
+    "fields": {
+      "username": "usuario.test10@dulcerialilis.cl",
+      "email": "usuario.test10@dulcerialilis.cl",
+      "correo": "usuario.test10@dulcerialilis.cl",
+      "nombre": "Pedro Pérez",
+      "telefono": "+56 9 11265388",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 21,
+    "fields": {
+      "username": "usuario.test11@dulcerialilis.cl",
+      "email": "usuario.test11@dulcerialilis.cl",
+      "correo": "usuario.test11@dulcerialilis.cl",
+      "nombre": "Ana Martínez",
+      "telefono": "+56 9 27315375",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 22,
+    "fields": {
+      "username": "usuario.test12@dulcerialilis.cl",
+      "email": "usuario.test12@dulcerialilis.cl",
+      "correo": "usuario.test12@dulcerialilis.cl",
+      "nombre": "Ana Pérez",
+      "telefono": "+56 9 80364384",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 23,
+    "fields": {
+      "username": "usuario.test13@dulcerialilis.cl",
+      "email": "usuario.test13@dulcerialilis.cl",
+      "correo": "usuario.test13@dulcerialilis.cl",
+      "nombre": "Carlos González",
+      "telefono": "+56 9 80148935",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 24,
+    "fields": {
+      "username": "usuario.test14@dulcerialilis.cl",
+      "email": "usuario.test14@dulcerialilis.cl",
+      "correo": "usuario.test14@dulcerialilis.cl",
+      "nombre": "Sofia Fernández",
+      "telefono": "+56 9 51565075",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 25,
+    "fields": {
+      "username": "usuario.test15@dulcerialilis.cl",
+      "email": "usuario.test15@dulcerialilis.cl",
+      "correo": "usuario.test15@dulcerialilis.cl",
+      "nombre": "Laura González",
+      "telefono": "+56 9 85863546",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 26,
+    "fields": {
+      "username": "usuario.test16@dulcerialilis.cl",
+      "email": "usuario.test16@dulcerialilis.cl",
+      "correo": "usuario.test16@dulcerialilis.cl",
+      "nombre": "María Martínez",
+      "telefono": "+56 9 71507542",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 27,
+    "fields": {
+      "username": "usuario.test17@dulcerialilis.cl",
+      "email": "usuario.test17@dulcerialilis.cl",
+      "correo": "usuario.test17@dulcerialilis.cl",
+      "nombre": "María González",
+      "telefono": "+56 9 60424039",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 28,
+    "fields": {
+      "username": "usuario.test18@dulcerialilis.cl",
+      "email": "usuario.test18@dulcerialilis.cl",
+      "correo": "usuario.test18@dulcerialilis.cl",
+      "nombre": "Sofia Fernández",
+      "telefono": "+56 9 49057717",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 29,
+    "fields": {
+      "username": "usuario.test19@dulcerialilis.cl",
+      "email": "usuario.test19@dulcerialilis.cl",
+      "correo": "usuario.test19@dulcerialilis.cl",
+      "nombre": "Ana Martínez",
+      "telefono": "+56 9 77840763",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 30,
+    "fields": {
+      "username": "usuario.test20@dulcerialilis.cl",
+      "email": "usuario.test20@dulcerialilis.cl",
+      "correo": "usuario.test20@dulcerialilis.cl",
+      "nombre": "María Martínez",
+      "telefono": "+56 9 99907154",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 31,
+    "fields": {
+      "username": "usuario.test21@dulcerialilis.cl",
+      "email": "usuario.test21@dulcerialilis.cl",
+      "correo": "usuario.test21@dulcerialilis.cl",
+      "nombre": "Diego Rodríguez",
+      "telefono": "+56 9 13709929",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 32,
+    "fields": {
+      "username": "usuario.test22@dulcerialilis.cl",
+      "email": "usuario.test22@dulcerialilis.cl",
+      "correo": "usuario.test22@dulcerialilis.cl",
+      "nombre": "Sofia Martínez",
+      "telefono": "+56 9 48666512",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 33,
+    "fields": {
+      "username": "usuario.test23@dulcerialilis.cl",
+      "email": "usuario.test23@dulcerialilis.cl",
+      "correo": "usuario.test23@dulcerialilis.cl",
+      "nombre": "Diego Rodríguez",
+      "telefono": "+56 9 49341384",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 34,
+    "fields": {
+      "username": "usuario.test24@dulcerialilis.cl",
+      "email": "usuario.test24@dulcerialilis.cl",
+      "correo": "usuario.test24@dulcerialilis.cl",
+      "nombre": "Carlos González",
+      "telefono": "+56 9 22136775",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 35,
+    "fields": {
+      "username": "usuario.test25@dulcerialilis.cl",
+      "email": "usuario.test25@dulcerialilis.cl",
+      "correo": "usuario.test25@dulcerialilis.cl",
+      "nombre": "Ana Pérez",
+      "telefono": "+56 9 54345566",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 36,
+    "fields": {
+      "username": "usuario.test26@dulcerialilis.cl",
+      "email": "usuario.test26@dulcerialilis.cl",
+      "correo": "usuario.test26@dulcerialilis.cl",
+      "nombre": "Diego Pérez",
+      "telefono": "+56 9 56077588",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 37,
+    "fields": {
+      "username": "usuario.test27@dulcerialilis.cl",
+      "email": "usuario.test27@dulcerialilis.cl",
+      "correo": "usuario.test27@dulcerialilis.cl",
+      "nombre": "Juan Rodríguez",
+      "telefono": "+56 9 96510925",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 38,
+    "fields": {
+      "username": "usuario.test28@dulcerialilis.cl",
+      "email": "usuario.test28@dulcerialilis.cl",
+      "correo": "usuario.test28@dulcerialilis.cl",
+      "nombre": "María Fernández",
+      "telefono": "+56 9 21840075",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 39,
+    "fields": {
+      "username": "usuario.test29@dulcerialilis.cl",
+      "email": "usuario.test29@dulcerialilis.cl",
+      "correo": "usuario.test29@dulcerialilis.cl",
+      "nombre": "Pedro González",
+      "telefono": "+56 9 36208043",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 40,
+    "fields": {
+      "username": "usuario.test30@dulcerialilis.cl",
+      "email": "usuario.test30@dulcerialilis.cl",
+      "correo": "usuario.test30@dulcerialilis.cl",
+      "nombre": "María López",
+      "telefono": "+56 9 30918938",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 41,
+    "fields": {
+      "username": "usuario.test31@dulcerialilis.cl",
+      "email": "usuario.test31@dulcerialilis.cl",
+      "correo": "usuario.test31@dulcerialilis.cl",
+      "nombre": "María Martínez",
+      "telefono": "+56 9 26686806",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 42,
+    "fields": {
+      "username": "usuario.test32@dulcerialilis.cl",
+      "email": "usuario.test32@dulcerialilis.cl",
+      "correo": "usuario.test32@dulcerialilis.cl",
+      "nombre": "María Fernández",
+      "telefono": "+56 9 13021639",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 43,
+    "fields": {
+      "username": "usuario.test33@dulcerialilis.cl",
+      "email": "usuario.test33@dulcerialilis.cl",
+      "correo": "usuario.test33@dulcerialilis.cl",
+      "nombre": "Pedro Fernández",
+      "telefono": "+56 9 43194716",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 44,
+    "fields": {
+      "username": "usuario.test34@dulcerialilis.cl",
+      "email": "usuario.test34@dulcerialilis.cl",
+      "correo": "usuario.test34@dulcerialilis.cl",
+      "nombre": "María Pérez",
+      "telefono": "+56 9 57586091",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 45,
+    "fields": {
+      "username": "usuario.test35@dulcerialilis.cl",
+      "email": "usuario.test35@dulcerialilis.cl",
+      "correo": "usuario.test35@dulcerialilis.cl",
+      "nombre": "Pedro González",
+      "telefono": "+56 9 25387368",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 46,
+    "fields": {
+      "username": "usuario.test36@dulcerialilis.cl",
+      "email": "usuario.test36@dulcerialilis.cl",
+      "correo": "usuario.test36@dulcerialilis.cl",
+      "nombre": "Diego González",
+      "telefono": "+56 9 98674714",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 47,
+    "fields": {
+      "username": "usuario.test37@dulcerialilis.cl",
+      "email": "usuario.test37@dulcerialilis.cl",
+      "correo": "usuario.test37@dulcerialilis.cl",
+      "nombre": "Pedro Pérez",
+      "telefono": "+56 9 98687019",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 48,
+    "fields": {
+      "username": "usuario.test38@dulcerialilis.cl",
+      "email": "usuario.test38@dulcerialilis.cl",
+      "correo": "usuario.test38@dulcerialilis.cl",
+      "nombre": "Sofia Rodríguez",
+      "telefono": "+56 9 85517325",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 49,
+    "fields": {
+      "username": "usuario.test39@dulcerialilis.cl",
+      "email": "usuario.test39@dulcerialilis.cl",
+      "correo": "usuario.test39@dulcerialilis.cl",
+      "nombre": "María Martínez",
+      "telefono": "+56 9 51116388",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 50,
+    "fields": {
+      "username": "usuario.test40@dulcerialilis.cl",
+      "email": "usuario.test40@dulcerialilis.cl",
+      "correo": "usuario.test40@dulcerialilis.cl",
+      "nombre": "Sofia López",
+      "telefono": "+56 9 35791074",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 51,
+    "fields": {
+      "username": "usuario.test41@dulcerialilis.cl",
+      "email": "usuario.test41@dulcerialilis.cl",
+      "correo": "usuario.test41@dulcerialilis.cl",
+      "nombre": "Pedro Martínez",
+      "telefono": "+56 9 61549049",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 52,
+    "fields": {
+      "username": "usuario.test42@dulcerialilis.cl",
+      "email": "usuario.test42@dulcerialilis.cl",
+      "correo": "usuario.test42@dulcerialilis.cl",
+      "nombre": "Diego Fernández",
+      "telefono": "+56 9 44155664",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 53,
+    "fields": {
+      "username": "usuario.test43@dulcerialilis.cl",
+      "email": "usuario.test43@dulcerialilis.cl",
+      "correo": "usuario.test43@dulcerialilis.cl",
+      "nombre": "Juan Pérez",
+      "telefono": "+56 9 76360498",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 54,
+    "fields": {
+      "username": "usuario.test44@dulcerialilis.cl",
+      "email": "usuario.test44@dulcerialilis.cl",
+      "correo": "usuario.test44@dulcerialilis.cl",
+      "nombre": "Diego Martínez",
+      "telefono": "+56 9 58214173",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 55,
+    "fields": {
+      "username": "usuario.test45@dulcerialilis.cl",
+      "email": "usuario.test45@dulcerialilis.cl",
+      "correo": "usuario.test45@dulcerialilis.cl",
+      "nombre": "Diego Martínez",
+      "telefono": "+56 9 43372863",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 56,
+    "fields": {
+      "username": "usuario.test46@dulcerialilis.cl",
+      "email": "usuario.test46@dulcerialilis.cl",
+      "correo": "usuario.test46@dulcerialilis.cl",
+      "nombre": "Sofia Rodríguez",
+      "telefono": "+56 9 55513357",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 57,
+    "fields": {
+      "username": "usuario.test47@dulcerialilis.cl",
+      "email": "usuario.test47@dulcerialilis.cl",
+      "correo": "usuario.test47@dulcerialilis.cl",
+      "nombre": "Pedro Rodríguez",
+      "telefono": "+56 9 69990344",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 58,
+    "fields": {
+      "username": "usuario.test48@dulcerialilis.cl",
+      "email": "usuario.test48@dulcerialilis.cl",
+      "correo": "usuario.test48@dulcerialilis.cl",
+      "nombre": "Sofia López",
+      "telefono": "+56 9 25362740",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 59,
+    "fields": {
+      "username": "usuario.test49@dulcerialilis.cl",
+      "email": "usuario.test49@dulcerialilis.cl",
+      "correo": "usuario.test49@dulcerialilis.cl",
+      "nombre": "Sofia Rodríguez",
+      "telefono": "+56 9 82636197",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 60,
+    "fields": {
+      "username": "usuario.test50@dulcerialilis.cl",
+      "email": "usuario.test50@dulcerialilis.cl",
+      "correo": "usuario.test50@dulcerialilis.cl",
+      "nombre": "Laura López",
+      "telefono": "+56 9 32972556",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 61,
+    "fields": {
+      "username": "usuario.test51@dulcerialilis.cl",
+      "email": "usuario.test51@dulcerialilis.cl",
+      "correo": "usuario.test51@dulcerialilis.cl",
+      "nombre": "Juan López",
+      "telefono": "+56 9 89371550",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 62,
+    "fields": {
+      "username": "usuario.test52@dulcerialilis.cl",
+      "email": "usuario.test52@dulcerialilis.cl",
+      "correo": "usuario.test52@dulcerialilis.cl",
+      "nombre": "Laura Fernández",
+      "telefono": "+56 9 21089092",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 63,
+    "fields": {
+      "username": "usuario.test53@dulcerialilis.cl",
+      "email": "usuario.test53@dulcerialilis.cl",
+      "correo": "usuario.test53@dulcerialilis.cl",
+      "nombre": "Juan Martínez",
+      "telefono": "+56 9 57779278",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 64,
+    "fields": {
+      "username": "usuario.test54@dulcerialilis.cl",
+      "email": "usuario.test54@dulcerialilis.cl",
+      "correo": "usuario.test54@dulcerialilis.cl",
+      "nombre": "María Martínez",
+      "telefono": "+56 9 39077401",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 65,
+    "fields": {
+      "username": "usuario.test55@dulcerialilis.cl",
+      "email": "usuario.test55@dulcerialilis.cl",
+      "correo": "usuario.test55@dulcerialilis.cl",
+      "nombre": "Juan Pérez",
+      "telefono": "+56 9 23267136",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 66,
+    "fields": {
+      "username": "usuario.test56@dulcerialilis.cl",
+      "email": "usuario.test56@dulcerialilis.cl",
+      "correo": "usuario.test56@dulcerialilis.cl",
+      "nombre": "Ana Pérez",
+      "telefono": "+56 9 67947445",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 67,
+    "fields": {
+      "username": "usuario.test57@dulcerialilis.cl",
+      "email": "usuario.test57@dulcerialilis.cl",
+      "correo": "usuario.test57@dulcerialilis.cl",
+      "nombre": "Pedro Fernández",
+      "telefono": "+56 9 66611342",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 68,
+    "fields": {
+      "username": "usuario.test58@dulcerialilis.cl",
+      "email": "usuario.test58@dulcerialilis.cl",
+      "correo": "usuario.test58@dulcerialilis.cl",
+      "nombre": "Diego González",
+      "telefono": "+56 9 61021107",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 69,
+    "fields": {
+      "username": "usuario.test59@dulcerialilis.cl",
+      "email": "usuario.test59@dulcerialilis.cl",
+      "correo": "usuario.test59@dulcerialilis.cl",
+      "nombre": "Juan López",
+      "telefono": "+56 9 41809989",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 70,
+    "fields": {
+      "username": "usuario.test60@dulcerialilis.cl",
+      "email": "usuario.test60@dulcerialilis.cl",
+      "correo": "usuario.test60@dulcerialilis.cl",
+      "nombre": "María Fernández",
+      "telefono": "+56 9 91656861",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 71,
+    "fields": {
+      "username": "usuario.test61@dulcerialilis.cl",
+      "email": "usuario.test61@dulcerialilis.cl",
+      "correo": "usuario.test61@dulcerialilis.cl",
+      "nombre": "Ana López",
+      "telefono": "+56 9 17630249",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 72,
+    "fields": {
+      "username": "usuario.test62@dulcerialilis.cl",
+      "email": "usuario.test62@dulcerialilis.cl",
+      "correo": "usuario.test62@dulcerialilis.cl",
+      "nombre": "Pedro Rodríguez",
+      "telefono": "+56 9 86990418",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 73,
+    "fields": {
+      "username": "usuario.test63@dulcerialilis.cl",
+      "email": "usuario.test63@dulcerialilis.cl",
+      "correo": "usuario.test63@dulcerialilis.cl",
+      "nombre": "Laura Martínez",
+      "telefono": "+56 9 25942427",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 74,
+    "fields": {
+      "username": "usuario.test64@dulcerialilis.cl",
+      "email": "usuario.test64@dulcerialilis.cl",
+      "correo": "usuario.test64@dulcerialilis.cl",
+      "nombre": "Sofia Rodríguez",
+      "telefono": "+56 9 20521524",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 75,
+    "fields": {
+      "username": "usuario.test65@dulcerialilis.cl",
+      "email": "usuario.test65@dulcerialilis.cl",
+      "correo": "usuario.test65@dulcerialilis.cl",
+      "nombre": "Pedro Rodríguez",
+      "telefono": "+56 9 71531439",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 76,
+    "fields": {
+      "username": "usuario.test66@dulcerialilis.cl",
+      "email": "usuario.test66@dulcerialilis.cl",
+      "correo": "usuario.test66@dulcerialilis.cl",
+      "nombre": "Sofia Martínez",
+      "telefono": "+56 9 74425913",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 77,
+    "fields": {
+      "username": "usuario.test67@dulcerialilis.cl",
+      "email": "usuario.test67@dulcerialilis.cl",
+      "correo": "usuario.test67@dulcerialilis.cl",
+      "nombre": "Pedro González",
+      "telefono": "+56 9 55321277",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 78,
+    "fields": {
+      "username": "usuario.test68@dulcerialilis.cl",
+      "email": "usuario.test68@dulcerialilis.cl",
+      "correo": "usuario.test68@dulcerialilis.cl",
+      "nombre": "Ana Rodríguez",
+      "telefono": "+56 9 74218572",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 79,
+    "fields": {
+      "username": "usuario.test69@dulcerialilis.cl",
+      "email": "usuario.test69@dulcerialilis.cl",
+      "correo": "usuario.test69@dulcerialilis.cl",
+      "nombre": "María Martínez",
+      "telefono": "+56 9 85903699",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 80,
+    "fields": {
+      "username": "usuario.test70@dulcerialilis.cl",
+      "email": "usuario.test70@dulcerialilis.cl",
+      "correo": "usuario.test70@dulcerialilis.cl",
+      "nombre": "Juan González",
+      "telefono": "+56 9 74571208",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 81,
+    "fields": {
+      "username": "usuario.test71@dulcerialilis.cl",
+      "email": "usuario.test71@dulcerialilis.cl",
+      "correo": "usuario.test71@dulcerialilis.cl",
+      "nombre": "Sofia Fernández",
+      "telefono": "+56 9 26294363",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 82,
+    "fields": {
+      "username": "usuario.test72@dulcerialilis.cl",
+      "email": "usuario.test72@dulcerialilis.cl",
+      "correo": "usuario.test72@dulcerialilis.cl",
+      "nombre": "Carlos Pérez",
+      "telefono": "+56 9 85596804",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 83,
+    "fields": {
+      "username": "usuario.test73@dulcerialilis.cl",
+      "email": "usuario.test73@dulcerialilis.cl",
+      "correo": "usuario.test73@dulcerialilis.cl",
+      "nombre": "Juan Pérez",
+      "telefono": "+56 9 12132843",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 84,
+    "fields": {
+      "username": "usuario.test74@dulcerialilis.cl",
+      "email": "usuario.test74@dulcerialilis.cl",
+      "correo": "usuario.test74@dulcerialilis.cl",
+      "nombre": "Diego Pérez",
+      "telefono": "+56 9 21605426",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 85,
+    "fields": {
+      "username": "usuario.test75@dulcerialilis.cl",
+      "email": "usuario.test75@dulcerialilis.cl",
+      "correo": "usuario.test75@dulcerialilis.cl",
+      "nombre": "Diego López",
+      "telefono": "+56 9 10904848",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 86,
+    "fields": {
+      "username": "usuario.test76@dulcerialilis.cl",
+      "email": "usuario.test76@dulcerialilis.cl",
+      "correo": "usuario.test76@dulcerialilis.cl",
+      "nombre": "Sofia Rodríguez",
+      "telefono": "+56 9 41753571",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 87,
+    "fields": {
+      "username": "usuario.test77@dulcerialilis.cl",
+      "email": "usuario.test77@dulcerialilis.cl",
+      "correo": "usuario.test77@dulcerialilis.cl",
+      "nombre": "Sofia Fernández",
+      "telefono": "+56 9 23075441",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 88,
+    "fields": {
+      "username": "usuario.test78@dulcerialilis.cl",
+      "email": "usuario.test78@dulcerialilis.cl",
+      "correo": "usuario.test78@dulcerialilis.cl",
+      "nombre": "Sofia Pérez",
+      "telefono": "+56 9 32817243",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 89,
+    "fields": {
+      "username": "usuario.test79@dulcerialilis.cl",
+      "email": "usuario.test79@dulcerialilis.cl",
+      "correo": "usuario.test79@dulcerialilis.cl",
+      "nombre": "Ana González",
+      "telefono": "+56 9 32966353",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 90,
+    "fields": {
+      "username": "usuario.test80@dulcerialilis.cl",
+      "email": "usuario.test80@dulcerialilis.cl",
+      "correo": "usuario.test80@dulcerialilis.cl",
+      "nombre": "Ana Martínez",
+      "telefono": "+56 9 20643861",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 91,
+    "fields": {
+      "username": "usuario.test81@dulcerialilis.cl",
+      "email": "usuario.test81@dulcerialilis.cl",
+      "correo": "usuario.test81@dulcerialilis.cl",
+      "nombre": "Carlos Rodríguez",
+      "telefono": "+56 9 67560244",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 92,
+    "fields": {
+      "username": "usuario.test82@dulcerialilis.cl",
+      "email": "usuario.test82@dulcerialilis.cl",
+      "correo": "usuario.test82@dulcerialilis.cl",
+      "nombre": "Ana Pérez",
+      "telefono": "+56 9 31657299",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 93,
+    "fields": {
+      "username": "usuario.test83@dulcerialilis.cl",
+      "email": "usuario.test83@dulcerialilis.cl",
+      "correo": "usuario.test83@dulcerialilis.cl",
+      "nombre": "Juan González",
+      "telefono": "+56 9 35057542",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 94,
+    "fields": {
+      "username": "usuario.test84@dulcerialilis.cl",
+      "email": "usuario.test84@dulcerialilis.cl",
+      "correo": "usuario.test84@dulcerialilis.cl",
+      "nombre": "Carlos Martínez",
+      "telefono": "+56 9 20977288",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 95,
+    "fields": {
+      "username": "usuario.test85@dulcerialilis.cl",
+      "email": "usuario.test85@dulcerialilis.cl",
+      "correo": "usuario.test85@dulcerialilis.cl",
+      "nombre": "Ana González",
+      "telefono": "+56 9 19552637",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 96,
+    "fields": {
+      "username": "usuario.test86@dulcerialilis.cl",
+      "email": "usuario.test86@dulcerialilis.cl",
+      "correo": "usuario.test86@dulcerialilis.cl",
+      "nombre": "María González",
+      "telefono": "+56 9 79186120",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 97,
+    "fields": {
+      "username": "usuario.test87@dulcerialilis.cl",
+      "email": "usuario.test87@dulcerialilis.cl",
+      "correo": "usuario.test87@dulcerialilis.cl",
+      "nombre": "Juan González",
+      "telefono": "+56 9 89038714",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 98,
+    "fields": {
+      "username": "usuario.test88@dulcerialilis.cl",
+      "email": "usuario.test88@dulcerialilis.cl",
+      "correo": "usuario.test88@dulcerialilis.cl",
+      "nombre": "Pedro López",
+      "telefono": "+56 9 33876819",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 99,
+    "fields": {
+      "username": "usuario.test89@dulcerialilis.cl",
+      "email": "usuario.test89@dulcerialilis.cl",
+      "correo": "usuario.test89@dulcerialilis.cl",
+      "nombre": "Laura López",
+      "telefono": "+56 9 66460020",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 100,
+    "fields": {
+      "username": "usuario.test90@dulcerialilis.cl",
+      "email": "usuario.test90@dulcerialilis.cl",
+      "correo": "usuario.test90@dulcerialilis.cl",
+      "nombre": "Sofia Pérez",
+      "telefono": "+56 9 87786204",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 101,
+    "fields": {
+      "username": "usuario.test91@dulcerialilis.cl",
+      "email": "usuario.test91@dulcerialilis.cl",
+      "correo": "usuario.test91@dulcerialilis.cl",
+      "nombre": "Diego Fernández",
+      "telefono": "+56 9 95581983",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 102,
+    "fields": {
+      "username": "usuario.test92@dulcerialilis.cl",
+      "email": "usuario.test92@dulcerialilis.cl",
+      "correo": "usuario.test92@dulcerialilis.cl",
+      "nombre": "Carlos Fernández",
+      "telefono": "+56 9 39367576",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 103,
+    "fields": {
+      "username": "usuario.test93@dulcerialilis.cl",
+      "email": "usuario.test93@dulcerialilis.cl",
+      "correo": "usuario.test93@dulcerialilis.cl",
+      "nombre": "Carlos Rodríguez",
+      "telefono": "+56 9 76090691",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 104,
+    "fields": {
+      "username": "usuario.test94@dulcerialilis.cl",
+      "email": "usuario.test94@dulcerialilis.cl",
+      "correo": "usuario.test94@dulcerialilis.cl",
+      "nombre": "Juan González",
+      "telefono": "+56 9 60929393",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 105,
+    "fields": {
+      "username": "usuario.test95@dulcerialilis.cl",
+      "email": "usuario.test95@dulcerialilis.cl",
+      "correo": "usuario.test95@dulcerialilis.cl",
+      "nombre": "Diego González",
+      "telefono": "+56 9 92348378",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 106,
+    "fields": {
+      "username": "usuario.test96@dulcerialilis.cl",
+      "email": "usuario.test96@dulcerialilis.cl",
+      "correo": "usuario.test96@dulcerialilis.cl",
+      "nombre": "María López",
+      "telefono": "+56 9 21257934",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 107,
+    "fields": {
+      "username": "usuario.test97@dulcerialilis.cl",
+      "email": "usuario.test97@dulcerialilis.cl",
+      "correo": "usuario.test97@dulcerialilis.cl",
+      "nombre": "Laura Pérez",
+      "telefono": "+56 9 53665195",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 108,
+    "fields": {
+      "username": "usuario.test98@dulcerialilis.cl",
+      "email": "usuario.test98@dulcerialilis.cl",
+      "correo": "usuario.test98@dulcerialilis.cl",
+      "nombre": "Sofia López",
+      "telefono": "+56 9 77782300",
+      "id_rol": 2,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 109,
+    "fields": {
+      "username": "usuario.test99@dulcerialilis.cl",
+      "email": "usuario.test99@dulcerialilis.cl",
+      "correo": "usuario.test99@dulcerialilis.cl",
+      "nombre": "Pedro Martínez",
+      "telefono": "+56 9 35312432",
+      "id_rol": 3,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  },
+  {
+    "model": "usuarios.usuario",
+    "pk": 110,
+    "fields": {
+      "username": "usuario.test100@dulcerialilis.cl",
+      "email": "usuario.test100@dulcerialilis.cl",
+      "correo": "usuario.test100@dulcerialilis.cl",
+      "nombre": "Pedro Martínez",
+      "telefono": "+56 9 81552496",
+      "id_rol": 1,
+      "is_active": true,
+      "is_staff": false,
+      "is_superuser": false,
+      "forzar_cambio_contrasena": false,
+      "password": "pbkdf2_sha256$600000$test$hashedpassword"
+    }
+  }
+]

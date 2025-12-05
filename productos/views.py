@@ -25,7 +25,6 @@ class ProductoForm(forms.ModelForm):
     control_por_serie = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     imagen_url = forms.URLField(required=False, widget=forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://...imagen.jpg'}))
     ficha_tecnica_url = forms.URLField(required=False, widget=forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://...ficha.pdf'}))
-    activo = forms.BooleanField(required=False, initial=True, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     
     class Meta:
         model = Producto
@@ -86,7 +85,7 @@ def lista_productos(request):
         'order_direction': order_direction,
         'per_page': per_page,
         'total_productos': Producto.objects.count(),
-        'productos_activos': Producto.objects.filter(activo=True).count(),
+        'productos_activos': Producto.objects.count(),  # Todos los productos están activos ya que no hay campo activo
     }
     return render(request, 'dashboard/productos.html', context)
 
@@ -119,8 +118,7 @@ def agregar_producto(request):
                         'nombre': producto.nombre,
                         'descripcion': producto.descripcion or '',
                         'precio': float(producto.precio_referencia),
-                        'categoria': form.cleaned_data.get('categoria', ''),
-                        'activo': form.cleaned_data.get('activo', True)
+                        'categoria': form.cleaned_data.get('categoria', '')
                     }
                 })
             

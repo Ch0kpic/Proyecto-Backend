@@ -457,7 +457,7 @@ def productos_view(request):
 
 @login_required
 def inventarios_view(request):
-    """Vista de inventarios con búsqueda avanzada y alertas"""
+    """Vista de inventarios con búsqueda avanzada, paginación y alertas"""
     from inventarios.models import AlertaInventario, MovimientoInventario
     from proveedores.models import Proveedor
     from django.db.models import Q
@@ -484,41 +484,60 @@ def inventarios_view(request):
     
     # Filtros
     nivel_stock = request.GET.get('nivel_stock')
-    ubicacion = request.GET.get('ubicacion')
+    ubicacion_filtro = request.GET.get('ubicacion')
     
-    # Filtrar por nivel de stock
+    # Filtrar por ubicación primero (antes de convertir a lista)
+    if ubicacion_filtro:
+        inventarios = inventarios.filter(ubicacion__icontains=ubicacion_filtro)
+    
+    # Filtrar por nivel de stock (requiere conversión a lista)
     if nivel_stock:
+        inventarios_list = list(inventarios)
         if nivel_stock == 'critico':
-            inventarios = [inv for inv in inventarios if inv.cantidad_actual == 0]
+            inventarios_list = [inv for inv in inventarios_list if inv.cantidad_actual == 0]
         elif nivel_stock == 'bajo':
-            inventarios = [inv for inv in inventarios if inv.necesita_reabastecimiento and inv.cantidad_actual > 0]
+            inventarios_list = [inv for inv in inventarios_list if inv.necesita_reabastecimiento and inv.cantidad_actual > 0]
         elif nivel_stock == 'medio':
-            inventarios = [inv for inv in inventarios if inv.nivel_stock == 'medio']
+            inventarios_list = [inv for inv in inventarios_list if inv.nivel_stock == 'medio']
         elif nivel_stock == 'alto':
-            inventarios = [inv for inv in inventarios if inv.nivel_stock == 'alto']
-    
-    # Filtrar por ubicación
-    if ubicacion:
-        inventarios = inventarios.filter(ubicacion__icontains=ubicacion) if hasattr(inventarios, 'filter') else [inv for inv in inventarios if ubicacion.lower() in inv.ubicacion.lower()]
-    
-    # Convertir a lista si es queryset
-    if hasattr(inventarios, 'all'):
-        inventarios = list(inventarios)
+            inventarios_list = [inv for inv in inventarios_list if inv.nivel_stock == 'alto']
+        inventarios = inventarios_list
     
     # Ordenamiento
     order_by = request.GET.get('order_by', 'id_producto__nombre')
     order_direction = request.GET.get('order_direction', 'asc')
     
+    # Aplicar ordenamiento solo si no está filtrado por nivel de stock (que ya es lista)
+    if not nivel_stock:
+        order_field = f'-{order_by}' if order_direction == 'desc' else order_by
+        inventarios = inventarios.order_by(order_field)
+    
+    # Paginación - obtener de sesión o de parámetro GET
+    per_page_param = request.GET.get('per_page')
+    if per_page_param:
+        per_page = int(per_page_param)
+        request.session['inventarios_per_page'] = per_page
+    else:
+        per_page = request.session.get('inventarios_per_page', 10)
+        # Asegurar que sea entero
+        if isinstance(per_page, str):
+            per_page = int(per_page)
+    
+    paginator = Paginator(inventarios, per_page)
+    page = request.GET.get('page', 1)
+    inventarios_paginados = paginator.get_page(page)
+    
     # Obtener alertas activas
     alertas_activas = AlertaInventario.objects.filter(resuelta=False).count()
     alertas_criticas = AlertaInventario.objects.filter(resuelta=False, tipo_alerta='stock_critico').count()
     
-    # Calcular estadísticas
-    total_productos = len(inventarios)
-    stock_critico = sum(1 for inv in inventarios if inv.cantidad_actual == 0)
-    stock_bajo = sum(1 for inv in inventarios if inv.necesita_reabastecimiento and inv.cantidad_actual > 0)
-    stock_medio = sum(1 for inv in inventarios if inv.nivel_stock == 'medio')
-    stock_alto = sum(1 for inv in inventarios if inv.nivel_stock == 'alto')
+    # Calcular estadísticas (sobre todos los inventarios, no solo los paginados)
+    todos_inventarios = Inventario.objects.all()
+    total_productos = todos_inventarios.count()
+    stock_critico = sum(1 for inv in todos_inventarios if inv.cantidad_actual == 0)
+    stock_bajo = sum(1 for inv in todos_inventarios if inv.necesita_reabastecimiento and inv.cantidad_actual > 0)
+    stock_medio = sum(1 for inv in todos_inventarios if inv.nivel_stock == 'medio')
+    stock_alto = sum(1 for inv in todos_inventarios if inv.nivel_stock == 'alto')
     
     # Obtener ubicaciones únicas para filtro
     ubicaciones = Inventario.objects.values_list('ubicacion', flat=True).distinct()
@@ -534,7 +553,7 @@ def inventarios_view(request):
     now = timezone.now()
     
     context = {
-        'inventarios': inventarios,
+        'inventarios': inventarios_paginados,
         'total_productos': total_productos,
         'stock_alto': stock_alto,
         'stock_medio': stock_medio,
@@ -547,7 +566,10 @@ def inventarios_view(request):
         'movimientos_recientes': movimientos_recientes,
         'search': search,
         'nivel_stock_filtro': nivel_stock,
-        'ubicacion_filtro': ubicacion,
+        'ubicacion_filtro': ubicacion_filtro,
+        'order_by': order_by.replace('-', ''),
+        'order_direction': order_direction,
+        'per_page': per_page,
         'today': now.date(),
         'user': request.user,
         'es_vendedor': es_vendedor,

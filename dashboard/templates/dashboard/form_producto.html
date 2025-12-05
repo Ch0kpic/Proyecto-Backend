@@ -1,7 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}{{ title }} - Dulcería Lilis{% endblock %}
+{% block title %}{{ titulo }} - Dulcería Lilis{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -597,19 +597,6 @@
                                             </label>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div class="form-field mt-4">
-                                <label class="form-label">
-                                    <i class="bi bi-toggle-on me-1"></i>Estado del Producto
-                                </label>
-                                <div class="form-check form-switch" style="font-size: 1.1rem;">
-                                    {{ form.activo }}
-                                    <label class="form-check-label ms-2" for="{{ form.activo.id_for_label }}">
-                                        <strong>Producto Activo</strong>
-                                        <small class="d-block text-muted">Los productos inactivos no aparecerán en ventas</small>
-                                    </label>
                                 </div>
                             </div>
                         </div>

@@ -421,22 +421,21 @@
                                         <label class="form-label">
                                             <i class="bi bi-upc me-1"></i>SKU <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" class="form-input" name="sku" placeholder="SKU-001" required>
+                                        {{ form.sku }}
+                                        {% if form.sku.errors %}
+                                            <div class="text-danger small mt-1">{{ form.sku.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-field">
                                         <label class="form-label">
-                                            <i class="bi bi-grid me-1"></i>Categoría
+                                            <i class="bi bi-upc-scan me-1"></i>EAN/UPC <span class="text-muted">(opcional)</span>
                                         </label>
-                                        <select class="form-select" name="categoria">
-                                            <option value="">Seleccione...</option>
-                                            <option value="Dulces">🍬 Dulces</option>
-                                            <option value="Chocolates">🍫 Chocolates</option>
-                                            <option value="Bebidas">🥤 Bebidas</option>
-                                            <option value="Snacks">🍿 Snacks</option>
-                                            <option value="Galletas">🍪 Galletas</option>
-                                        </select>
+                                        {{ form.ean_upc }}
+                                        {% if form.ean_upc.errors %}
+                                            <div class="text-danger small mt-1">{{ form.ean_upc.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -447,7 +446,10 @@
                                         <label class="form-label">
                                             <i class="bi bi-building me-1"></i>Marca <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" class="form-input" name="marca" placeholder="Marca del producto" required>
+                                        {{ form.marca }}
+                                        {% if form.marca.errors %}
+                                            <div class="text-danger small mt-1">{{ form.marca.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -455,9 +457,22 @@
                                         <label class="form-label">
                                             <i class="bi bi-box me-1"></i>Modelo <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" class="form-input" name="modelo" placeholder="Modelo" required>
+                                        {{ form.modelo }}
+                                        {% if form.modelo.errors %}
+                                            <div class="text-danger small mt-1">{{ form.modelo.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <div class="form-field">
+                                <label class="form-label">
+                                    <i class="bi bi-grid me-1"></i>Categoría <span class="text-muted">(opcional)</span>
+                                </label>
+                                {{ form.categoria }}
+                                {% if form.categoria.errors %}
+                                    <div class="text-danger small mt-1">{{ form.categoria.errors.0 }}</div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -485,7 +500,10 @@
                                         <label class="form-label">
                                             <i class="bi bi-receipt me-1"></i>Costo Unitario <span class="text-muted">(opcional)</span>
                                         </label>
-                                        <input type="number" class="form-input" name="costo_unitario" placeholder="0.00" step="0.01" min="0">
+                                        {{ form.costo_unitario }}
+                                        {% if form.costo_unitario.errors %}
+                                            <div class="text-danger small mt-1">{{ form.costo_unitario.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -496,7 +514,10 @@
                                         <label class="form-label">
                                             <i class="bi bi-dash-circle me-1"></i>Stock Mínimo
                                         </label>
-                                        <input type="number" class="form-input" name="stock_minimo" placeholder="0" value="0" min="0">
+                                        {{ form.stock_minimo }}
+                                        {% if form.stock_minimo.errors %}
+                                            <div class="text-danger small mt-1">{{ form.stock_minimo.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -504,7 +525,10 @@
                                         <label class="form-label">
                                             <i class="bi bi-plus-circle me-1"></i>Stock Máximo
                                         </label>
-                                        <input type="number" class="form-input" name="stock_maximo" placeholder="0" min="0">
+                                        {{ form.stock_maximo }}
+                                        {% if form.stock_maximo.errors %}
+                                            <div class="text-danger small mt-1">{{ form.stock_maximo.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -512,7 +536,10 @@
                                         <label class="form-label">
                                             <i class="bi bi-arrow-repeat me-1"></i>Punto Reorden
                                         </label>
-                                        <input type="number" class="form-input" name="punto_reorden" placeholder="0" min="0">
+                                        {{ form.punto_reorden }}
+                                        {% if form.punto_reorden.errors %}
+                                            <div class="text-danger small mt-1">{{ form.punto_reorden.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -523,13 +550,10 @@
                                         <label class="form-label">
                                             <i class="bi bi-box2 me-1"></i>Unidad de Compra
                                         </label>
-                                        <select class="form-select" name="unidad_compra">
-                                            <option value="">Seleccione...</option>
-                                            <option value="Unidad">Unidad</option>
-                                            <option value="Caja">Caja</option>
-                                            <option value="Paquete">Paquete</option>
-                                            <option value="Docena">Docena</option>
-                                        </select>
+                                        {{ form.unidad_compra }}
+                                        {% if form.unidad_compra.errors %}
+                                            <div class="text-danger small mt-1">{{ form.unidad_compra.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -537,9 +561,22 @@
                                         <label class="form-label">
                                             <i class="bi bi-calculator me-1"></i>Factor de Conversión
                                         </label>
-                                        <input type="number" class="form-input" name="factor_conversion" placeholder="1" value="1" min="1">
+                                        {{ form.factor_conversion }}
+                                        {% if form.factor_conversion.errors %}
+                                            <div class="text-danger small mt-1">{{ form.factor_conversion.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <div class="form-field">
+                                <label class="form-label">
+                                    <i class="bi bi-percent me-1"></i>Impuesto (%)
+                                </label>
+                                {{ form.impuesto }}
+                                {% if form.impuesto.errors %}
+                                    <div class="text-danger small mt-1">{{ form.impuesto.errors.0 }}</div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -555,7 +592,10 @@
                                         <label class="form-label">
                                             <i class="bi bi-image me-1"></i>URL de Imagen <span class="text-muted">(opcional)</span>
                                         </label>
-                                        <input type="url" class="form-input" name="imagen_url" placeholder="https://...imagen.jpg">
+                                        {{ form.imagen_url }}
+                                        {% if form.imagen_url.errors %}
+                                            <div class="text-danger small mt-1">{{ form.imagen_url.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -563,7 +603,10 @@
                                         <label class="form-label">
                                             <i class="bi bi-file-pdf me-1"></i>Ficha Técnica <span class="text-muted">(opcional)</span>
                                         </label>
-                                        <input type="url" class="form-input" name="ficha_tecnica_url" placeholder="https://...ficha.pdf">
+                                        {{ form.ficha_tecnica_url }}
+                                        {% if form.ficha_tecnica_url.errors %}
+                                            <div class="text-danger small mt-1">{{ form.ficha_tecnica_url.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -575,24 +618,24 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" name="perecedero" id="perecedero">
-                                            <label class="form-check-label" for="perecedero">
+                                            {{ form.perecedero }}
+                                            <label class="form-check-label" for="{{ form.perecedero.id_for_label }}">
                                                 <i class="bi bi-clock-history me-1"></i>Perecedero
                                             </label>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" name="control_por_lote" id="control_por_lote">
-                                            <label class="form-check-label" for="control_por_lote">
+                                            {{ form.control_por_lote }}
+                                            <label class="form-check-label" for="{{ form.control_por_lote.id_for_label }}">
                                                 <i class="bi bi-boxes me-1"></i>Control por Lote
                                             </label>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-check">
-                                            <input type="checkbox" class="form-check-input" name="control_por_serie" id="control_por_serie">
-                                            <label class="form-check-label" for="control_por_serie">
+                                            {{ form.control_por_serie }}
+                                            <label class="form-check-label" for="{{ form.control_por_serie.id_for_label }}">
                                                 <i class="bi bi-hash me-1"></i>Control por Serie
                                             </label>
                                         </div>

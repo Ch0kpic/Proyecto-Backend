@@ -7,95 +7,37 @@ from .models import Producto
 from django import forms
 
 class ProductoForm(forms.ModelForm):
-    # Campos adicionales que no están en el modelo pero necesitamos en el formulario
-    sku = forms.CharField(
-        max_length=50, 
-        required=False,  # Se validará en __init__
-        widget=forms.TextInput(attrs={
-            'class': 'form-input', 
-            'placeholder': 'SKU-001'
-        }),
-        error_messages={'required': 'El SKU es obligatorio'}
-    )
-    ean_upc = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': '7891234567890'}))
-    categoria = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Categoría'}))
-    marca = forms.CharField(
-        max_length=100, 
-        required=False,  # Se validará en __init__
-        widget=forms.TextInput(attrs={
-            'class': 'form-input', 
-            'placeholder': 'Marca'
-        }),
-        error_messages={'required': 'La marca es obligatoria'}
-    )
-    modelo = forms.CharField(
-        max_length=100, 
-        required=False,  # Se validará en __init__
-        widget=forms.TextInput(attrs={
-            'class': 'form-input', 
-            'placeholder': 'Modelo'
-        }),
-        error_messages={'required': 'El modelo es obligatorio'}
-    )
-    unidad_compra = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Unidad'}))
-    factor_conversion = forms.IntegerField(
-        initial=1, 
-        required=False, 
-        min_value=1,
-        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '1', 'min': '1'}),
-        error_messages={'min_value': 'El factor de conversión debe ser al menos 1'}
-    )
-    costo_unitario = forms.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        required=False,
-        min_value=0,
-        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0.00', 'step': '0.01', 'min': '0'}),
-        error_messages={'min_value': 'El costo unitario no puede ser negativo'}
-    )
-    impuesto = forms.IntegerField(
-        initial=19, 
-        required=False,
-        min_value=0,
-        max_value=100,
-        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '19', 'min': '0', 'max': '100'}),
-        error_messages={
-            'min_value': 'El impuesto no puede ser negativo',
-            'max_value': 'El impuesto no puede ser mayor a 100%'
-        }
-    )
-    stock_minimo = forms.IntegerField(
-        initial=0, 
-        required=False,
-        min_value=0,
-        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
-        error_messages={'min_value': 'El stock mínimo no puede ser negativo'}
-    )
-    stock_maximo = forms.IntegerField(
-        required=False,
-        min_value=0,
-        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
-        error_messages={'min_value': 'El stock máximo no puede ser negativo'}
-    )
-    punto_reorden = forms.IntegerField(
-        required=False,
-        min_value=0,
-        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
-        error_messages={'min_value': 'El punto de reorden no puede ser negativo'}
-    )
-    perecedero = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    control_por_lote = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    control_por_serie = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
-    imagen_url = forms.URLField(required=False, widget=forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://...imagen.jpg'}))
-    ficha_tecnica_url = forms.URLField(required=False, widget=forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://...ficha.pdf'}))
-    
     class Meta:
         model = Producto
-        fields = ['nombre', 'descripcion', 'precio_referencia']
+        fields = [
+            'nombre', 'descripcion', 'precio_referencia',
+            'sku', 'ean_upc', 'categoria', 'marca', 'modelo',
+            'unidad_compra', 'factor_conversion', 'costo_unitario', 'impuesto',
+            'stock_minimo', 'stock_maximo', 'punto_reorden',
+            'perecedero', 'control_por_lote', 'control_por_serie',
+            'imagen_url', 'ficha_tecnica_url'
+        ]
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Nombre del producto'}),
             'descripcion': forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Descripción del producto', 'rows': 3}),
             'precio_referencia': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
+            'sku': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'SKU-001'}),
+            'ean_upc': forms.TextInput(attrs={'class': 'form-input', 'placeholder': '7891234567890'}),
+            'categoria': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Categoría'}),
+            'marca': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Marca'}),
+            'modelo': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Modelo'}),
+            'unidad_compra': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Unidad'}),
+            'factor_conversion': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '1', 'min': '1'}),
+            'costo_unitario': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0.00', 'step': '0.01', 'min': '0'}),
+            'impuesto': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '19', 'min': '0', 'max': '100'}),
+            'stock_minimo': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
+            'stock_maximo': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
+            'punto_reorden': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
+            'perecedero': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'control_por_lote': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'control_por_serie': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'imagen_url': forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://...imagen.jpg'}),
+            'ficha_tecnica_url': forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://...ficha.pdf'}),
         }
     
     def __init__(self, *args, **kwargs):

@@ -629,6 +629,44 @@
     document.addEventListener('DOMContentLoaded', function() {
         let currentStep = 1;
         const totalSteps = 3;
+        
+        // Detectar si es modo edición
+        const esEdicion = {{ es_edicion|default:'false'|lower }};
+        
+        if (esEdicion) {
+            // Mostrar alerta informativa para modo edición
+            Swal.fire({
+                icon: 'info',
+                title: 'Modo Edición',
+                html: 'Estás editando el producto <strong>{{ producto.nombre }}</strong>.<br>' +
+                      'Los campos básicos (Nombre, Descripción, Precio) ya están cargados.<br>' +
+                      'Los campos adicionales (SKU, Marca, Modelo, etc.) puedes actualizarlos si es necesario.',
+                confirmButtonColor: '#3b82f6',
+                confirmButtonText: 'Entendido'
+            });
+            
+            // Cambiar texto del botón
+            const submitBtn = document.querySelector('[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Actualizar Producto';
+            }
+            
+            // Hacer campos opcionales en modo edición
+            const camposOpcionales = ['sku', 'marca', 'modelo'];
+            camposOpcionales.forEach(campo => {
+                const input = document.querySelector(`[name="${campo}"]`);
+                if (input) {
+                    input.removeAttribute('required');
+                    // Actualizar label para indicar que es opcional
+                    const label = input.closest('.form-field')?.querySelector('.text-danger');
+                    if (label) {
+                        label.classList.remove('text-danger');
+                        label.classList.add('text-muted');
+                        label.textContent = '(opcional)';
+                    }
+                }
+            });
+        }
 
         // Función para mostrar paso específico
         function showStep(step) {
@@ -774,40 +812,43 @@
                     return false;
                 }
                 
-                if (!sku || !sku.value.trim()) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Campo Requerido',
-                        text: 'Por favor ingresa el SKU del producto',
-                        confirmButtonColor: '#dc2626'
-                    });
-                    showStep(1);
-                    if (sku) sku.focus();
-                    return false;
-                }
-                
-                if (!marca || !marca.value.trim()) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Campo Requerido',
-                        text: 'Por favor ingresa la marca del producto',
-                        confirmButtonColor: '#dc2626'
-                    });
-                    showStep(1);
-                    if (marca) marca.focus();
-                    return false;
-                }
-                
-                if (!modelo || !modelo.value.trim()) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Campo Requerido',
-                        text: 'Por favor ingresa el modelo del producto',
-                        confirmButtonColor: '#dc2626'
-                    });
-                    showStep(1);
-                    if (modelo) modelo.focus();
-                    return false;
+                // SKU, marca y modelo solo son obligatorios al crear, no al editar
+                if (!esEdicion) {
+                    if (!sku || !sku.value.trim()) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Campo Requerido',
+                            text: 'Por favor ingresa el SKU del producto',
+                            confirmButtonColor: '#dc2626'
+                        });
+                        showStep(1);
+                        if (sku) sku.focus();
+                        return false;
+                    }
+                    
+                    if (!marca || !marca.value.trim()) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Campo Requerido',
+                            text: 'Por favor ingresa la marca del producto',
+                            confirmButtonColor: '#dc2626'
+                        });
+                        showStep(1);
+                        if (marca) marca.focus();
+                        return false;
+                    }
+                    
+                    if (!modelo || !modelo.value.trim()) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Campo Requerido',
+                            text: 'Por favor ingresa el modelo del producto',
+                            confirmButtonColor: '#dc2626'
+                        });
+                        showStep(1);
+                        if (modelo) modelo.focus();
+                        return false;
+                    }
                 }
                 
                 if (!precio || !precio.value || parseFloat(precio.value) <= 0) {
@@ -842,9 +883,11 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        const titulo = esEdicion ? '¡Producto Actualizado!' : '¡Producto Creado!';
+                        
                         Swal.fire({
                             icon: 'success',
-                            title: '¡Producto Creado!',
+                            title: titulo,
                             text: data.message,
                             confirmButtonColor: '#10b981',
                             confirmButtonText: 'Aceptar'

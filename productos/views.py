@@ -10,11 +10,10 @@ class ProductoForm(forms.ModelForm):
     # Campos adicionales que no están en el modelo pero necesitamos en el formulario
     sku = forms.CharField(
         max_length=50, 
-        required=True,
+        required=False,  # Se validará en __init__
         widget=forms.TextInput(attrs={
             'class': 'form-input', 
-            'placeholder': 'SKU-001',
-            'required': 'required'
+            'placeholder': 'SKU-001'
         }),
         error_messages={'required': 'El SKU es obligatorio'}
     )
@@ -22,21 +21,19 @@ class ProductoForm(forms.ModelForm):
     categoria = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Categoría'}))
     marca = forms.CharField(
         max_length=100, 
-        required=True,
+        required=False,  # Se validará en __init__
         widget=forms.TextInput(attrs={
             'class': 'form-input', 
-            'placeholder': 'Marca',
-            'required': 'required'
+            'placeholder': 'Marca'
         }),
         error_messages={'required': 'La marca es obligatoria'}
     )
     modelo = forms.CharField(
         max_length=100, 
-        required=True,
+        required=False,  # Se validará en __init__
         widget=forms.TextInput(attrs={
             'class': 'form-input', 
-            'placeholder': 'Modelo',
-            'required': 'required'
+            'placeholder': 'Modelo'
         }),
         error_messages={'required': 'El modelo es obligatorio'}
     )
@@ -100,6 +97,20 @@ class ProductoForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Descripción del producto', 'rows': 3}),
             'precio_referencia': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        # Capturar si es edición (si instance está presente)
+        es_edicion = kwargs.get('instance') is not None
+        super().__init__(*args, **kwargs)
+        
+        # Solo hacer obligatorios SKU, marca y modelo al crear (no al editar)
+        if not es_edicion:
+            self.fields['sku'].required = True
+            self.fields['sku'].widget.attrs['required'] = 'required'
+            self.fields['marca'].required = True
+            self.fields['marca'].widget.attrs['required'] = 'required'
+            self.fields['modelo'].required = True
+            self.fields['modelo'].widget.attrs['required'] = 'required'
     
     def clean_precio_referencia(self):
         precio = self.cleaned_data.get('precio_referencia')

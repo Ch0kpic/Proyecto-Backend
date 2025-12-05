@@ -1074,19 +1074,49 @@ def editar_producto(request, producto_id):
         return redirect('dashboard:productos')
     
     if request.method == 'POST':
+        from productos.views import ProductoForm
         form = ProductoForm(request.POST, instance=producto)
+        
         if form.is_valid():
-            form.save()
+            producto_actualizado = form.save()
+            
+            # Si es petición AJAX, responder con JSON para SweetAlert
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Producto "{producto_actualizado.nombre}" actualizado exitosamente',
+                    'producto_id': producto_actualizado.id_producto,
+                    'producto_nombre': producto_actualizado.nombre
+                })
+            
             messages.success(request, 'Producto actualizado exitosamente')
             return redirect('dashboard:productos')
+        else:
+            # Si hay errores y es AJAX, responder con JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                errors_dict = {}
+                for field, errors in form.errors.items():
+                    if field == '__all__':
+                        errors_dict['general'] = errors
+                    else:
+                        errors_dict[field] = errors
+                
+                return JsonResponse({
+                    'success': False,
+                    'errors': errors_dict
+                }, status=400)
     else:
+        from productos.views import ProductoForm
+        # Pre-cargar el formulario con los datos del producto
+        # Los campos adicionales (SKU, marca, etc.) se inicializarán vacíos
         form = ProductoForm(instance=producto)
     
     context = {
         'form': form,
         'user': user,
         'titulo': f'Editar Producto: {producto.nombre}',
-        'producto': producto
+        'producto': producto,
+        'es_edicion': True  # Flag para que el template sepa que es edición
     }
     return render(request, 'dashboard/form_producto.html', context)
 

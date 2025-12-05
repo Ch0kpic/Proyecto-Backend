@@ -97,6 +97,9 @@ if USE_MYSQL:
             'PASSWORD': config('DB_PASSWORD', default=''),
             'HOST': config('DB_HOST', default='localhost'),
             'PORT': config('DB_PORT', default='3306'),
+            'OPTIONS': {
+                'ssl': {'ssl_disabled': True}
+            }
         }
     }
 else:
@@ -142,6 +145,9 @@ USE_TZ = True
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+# URL del sitio para enlaces en correos
+SITE_URL = config('DJANGO_SITE_URL', default='http://localhost:8000')
 
 
 # Static files (CSS, JavaScript, Images)

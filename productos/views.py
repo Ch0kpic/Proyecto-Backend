@@ -8,18 +8,84 @@ from django import forms
 
 class ProductoForm(forms.ModelForm):
     # Campos adicionales que no están en el modelo pero necesitamos en el formulario
-    sku = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'SKU-001'}))
+    sku = forms.CharField(
+        max_length=50, 
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input', 
+            'placeholder': 'SKU-001',
+            'required': 'required'
+        }),
+        error_messages={'required': 'El SKU es obligatorio'}
+    )
     ean_upc = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': '7891234567890'}))
     categoria = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Categoría'}))
-    marca = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Marca'}))
-    modelo = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Modelo'}))
+    marca = forms.CharField(
+        max_length=100, 
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input', 
+            'placeholder': 'Marca',
+            'required': 'required'
+        }),
+        error_messages={'required': 'La marca es obligatoria'}
+    )
+    modelo = forms.CharField(
+        max_length=100, 
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input', 
+            'placeholder': 'Modelo',
+            'required': 'required'
+        }),
+        error_messages={'required': 'El modelo es obligatorio'}
+    )
     unidad_compra = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Unidad'}))
-    factor_conversion = forms.IntegerField(initial=1, required=False, widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '1'}))
-    costo_unitario = forms.DecimalField(max_digits=10, decimal_places=2, required=False, widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0.00', 'step': '0.01'}))
-    impuesto = forms.IntegerField(initial=19, required=False, widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '19'}))
-    stock_minimo = forms.IntegerField(initial=0, required=False, widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0'}))
-    stock_maximo = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0'}))
-    punto_reorden = forms.IntegerField(required=False, widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0'}))
+    factor_conversion = forms.IntegerField(
+        initial=1, 
+        required=False, 
+        min_value=1,
+        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '1', 'min': '1'}),
+        error_messages={'min_value': 'El factor de conversión debe ser al menos 1'}
+    )
+    costo_unitario = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0.00', 'step': '0.01', 'min': '0'}),
+        error_messages={'min_value': 'El costo unitario no puede ser negativo'}
+    )
+    impuesto = forms.IntegerField(
+        initial=19, 
+        required=False,
+        min_value=0,
+        max_value=100,
+        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '19', 'min': '0', 'max': '100'}),
+        error_messages={
+            'min_value': 'El impuesto no puede ser negativo',
+            'max_value': 'El impuesto no puede ser mayor a 100%'
+        }
+    )
+    stock_minimo = forms.IntegerField(
+        initial=0, 
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
+        error_messages={'min_value': 'El stock mínimo no puede ser negativo'}
+    )
+    stock_maximo = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
+        error_messages={'min_value': 'El stock máximo no puede ser negativo'}
+    )
+    punto_reorden = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
+        error_messages={'min_value': 'El punto de reorden no puede ser negativo'}
+    )
     perecedero = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     control_por_lote = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
     control_por_serie = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
@@ -34,6 +100,30 @@ class ProductoForm(forms.ModelForm):
             'descripcion': forms.Textarea(attrs={'class': 'form-input', 'placeholder': 'Descripción del producto', 'rows': 3}),
             'precio_referencia': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0', 'min': '0'}),
         }
+    
+    def clean_precio_referencia(self):
+        precio = self.cleaned_data.get('precio_referencia')
+        if precio is not None and precio < 0:
+            raise forms.ValidationError('El precio de referencia no puede ser negativo')
+        return precio
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        stock_minimo = cleaned_data.get('stock_minimo')
+        stock_maximo = cleaned_data.get('stock_maximo')
+        punto_reorden = cleaned_data.get('punto_reorden')
+        
+        # Validar que stock máximo sea mayor o igual a stock mínimo
+        if stock_minimo is not None and stock_maximo is not None:
+            if stock_maximo > 0 and stock_minimo > stock_maximo:
+                raise forms.ValidationError('El stock mínimo no puede ser mayor al stock máximo')
+        
+        # Validar que punto de reorden esté entre stock mínimo y máximo
+        if punto_reorden is not None and stock_minimo is not None and stock_maximo is not None:
+            if stock_maximo > 0 and (punto_reorden < stock_minimo or punto_reorden > stock_maximo):
+                raise forms.ValidationError('El punto de reorden debe estar entre el stock mínimo y máximo')
+        
+        return cleaned_data
 
 @login_required
 def lista_productos(request):

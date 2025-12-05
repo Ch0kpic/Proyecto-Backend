@@ -1017,14 +1017,42 @@ def agregar_producto(request):
         return redirect('dashboard:productos')
     
     if request.method == 'POST':
+        # Importar el formulario desde productos
+        from productos.views import ProductoForm
         form = ProductoForm(request.POST)
+        
         if form.is_valid():
             producto = form.save()
+            
+            # Si es petición AJAX, responder con JSON para SweetAlert
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Producto "{producto.nombre}" agregado exitosamente',
+                    'producto_id': producto.id_producto,
+                    'producto_nombre': producto.nombre
+                })
+            
             messages.success(request, f'Producto "{producto.nombre}" agregado exitosamente')
             return redirect('dashboard:productos')
         else:
+            # Si hay errores y es AJAX, responder con JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                errors_dict = {}
+                for field, errors in form.errors.items():
+                    if field == '__all__':
+                        errors_dict['general'] = errors
+                    else:
+                        errors_dict[field] = errors
+                
+                return JsonResponse({
+                    'success': False,
+                    'errors': errors_dict
+                }, status=400)
+            
             messages.error(request, 'Por favor corrige los errores en el formulario')
     else:
+        from productos.views import ProductoForm
         form = ProductoForm()
     
     context = {

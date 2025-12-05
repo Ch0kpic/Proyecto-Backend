@@ -419,9 +419,9 @@
                                 <div class="col-md-6">
                                     <div class="form-field">
                                         <label class="form-label">
-                                            <i class="bi bi-upc me-1"></i>SKU <span class="text-muted">(opcional)</span>
+                                            <i class="bi bi-upc me-1"></i>SKU <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" class="form-input" name="sku" placeholder="SKU-001">
+                                        <input type="text" class="form-input" name="sku" placeholder="SKU-001" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -445,17 +445,17 @@
                                 <div class="col-md-6">
                                     <div class="form-field">
                                         <label class="form-label">
-                                            <i class="bi bi-building me-1"></i>Marca <span class="text-muted">(opcional)</span>
+                                            <i class="bi bi-building me-1"></i>Marca <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" class="form-input" name="marca" placeholder="Marca del producto">
+                                        <input type="text" class="form-input" name="marca" placeholder="Marca del producto" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-field">
                                         <label class="form-label">
-                                            <i class="bi bi-box me-1"></i>Modelo <span class="text-muted">(opcional)</span>
+                                            <i class="bi bi-box me-1"></i>Modelo <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" class="form-input" name="modelo" placeholder="Modelo">
+                                        <input type="text" class="form-input" name="modelo" placeholder="Modelo" required>
                                     </div>
                                 </div>
                             </div>
@@ -485,7 +485,7 @@
                                         <label class="form-label">
                                             <i class="bi bi-receipt me-1"></i>Costo Unitario <span class="text-muted">(opcional)</span>
                                         </label>
-                                        <input type="number" class="form-input" name="costo_unitario" placeholder="0.00" step="0.01">
+                                        <input type="number" class="form-input" name="costo_unitario" placeholder="0.00" step="0.01" min="0">
                                     </div>
                                 </div>
                             </div>
@@ -496,7 +496,7 @@
                                         <label class="form-label">
                                             <i class="bi bi-dash-circle me-1"></i>Stock Mínimo
                                         </label>
-                                        <input type="number" class="form-input" name="stock_minimo" placeholder="0" value="0">
+                                        <input type="number" class="form-input" name="stock_minimo" placeholder="0" value="0" min="0">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -504,7 +504,7 @@
                                         <label class="form-label">
                                             <i class="bi bi-plus-circle me-1"></i>Stock Máximo
                                         </label>
-                                        <input type="number" class="form-input" name="stock_maximo" placeholder="0">
+                                        <input type="number" class="form-input" name="stock_maximo" placeholder="0" min="0">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -512,7 +512,7 @@
                                         <label class="form-label">
                                             <i class="bi bi-arrow-repeat me-1"></i>Punto Reorden
                                         </label>
-                                        <input type="number" class="form-input" name="punto_reorden" placeholder="0">
+                                        <input type="number" class="form-input" name="punto_reorden" placeholder="0" min="0">
                                     </div>
                                 </div>
                             </div>
@@ -537,7 +537,7 @@
                                         <label class="form-label">
                                             <i class="bi bi-calculator me-1"></i>Factor de Conversión
                                         </label>
-                                        <input type="number" class="form-input" name="factor_conversion" placeholder="1" value="1">
+                                        <input type="number" class="form-input" name="factor_conversion" placeholder="1" value="1" min="1">
                                     </div>
                                 </div>
                             </div>
@@ -753,24 +753,141 @@
         const form = document.getElementById('productForm');
         if (form) {
             form.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevenir envío tradicional
+                
                 const nombre = document.querySelector('[name="nombre"]');
                 const precio = document.querySelector('[name="precio_referencia"]');
+                const sku = document.querySelector('[name="sku"]');
+                const marca = document.querySelector('[name="marca"]');
+                const modelo = document.querySelector('[name="modelo"]');
                 
+                // Validaciones básicas antes de enviar
                 if (!nombre || !nombre.value.trim()) {
-                    event.preventDefault();
-                    alert('Por favor ingresa el nombre del producto');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campo Requerido',
+                        text: 'Por favor ingresa el nombre del producto',
+                        confirmButtonColor: '#dc2626'
+                    });
                     showStep(1);
                     if (nombre) nombre.focus();
                     return false;
                 }
                 
+                if (!sku || !sku.value.trim()) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campo Requerido',
+                        text: 'Por favor ingresa el SKU del producto',
+                        confirmButtonColor: '#dc2626'
+                    });
+                    showStep(1);
+                    if (sku) sku.focus();
+                    return false;
+                }
+                
+                if (!marca || !marca.value.trim()) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campo Requerido',
+                        text: 'Por favor ingresa la marca del producto',
+                        confirmButtonColor: '#dc2626'
+                    });
+                    showStep(1);
+                    if (marca) marca.focus();
+                    return false;
+                }
+                
+                if (!modelo || !modelo.value.trim()) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campo Requerido',
+                        text: 'Por favor ingresa el modelo del producto',
+                        confirmButtonColor: '#dc2626'
+                    });
+                    showStep(1);
+                    if (modelo) modelo.focus();
+                    return false;
+                }
+                
                 if (!precio || !precio.value || parseFloat(precio.value) <= 0) {
-                    event.preventDefault();
-                    alert('Por favor ingresa un precio válido');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campo Requerido',
+                        text: 'Por favor ingresa un precio válido',
+                        confirmButtonColor: '#dc2626'
+                    });
                     showStep(2);
                     if (precio) precio.focus();
                     return false;
                 }
+                
+                // Enviar formulario con AJAX
+                const formData = new FormData(form);
+                const submitBtn = form.querySelector('[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                
+                // Deshabilitar botón y mostrar loading
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Guardando...';
+                
+                fetch(form.action || window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Producto Creado!',
+                            text: data.message,
+                            confirmButtonColor: '#10b981',
+                            confirmButtonText: 'Aceptar'
+                        }).then(() => {
+                            // Redirigir a lista de productos
+                            window.location.href = '{% url "dashboard:productos" %}';
+                        });
+                    } else {
+                        // Mostrar errores
+                        let errorMsg = 'Por favor corrige los siguientes errores:\n\n';
+                        for (const [field, errors] of Object.entries(data.errors)) {
+                            if (Array.isArray(errors)) {
+                                errorMsg += `• ${errors.join(', ')}\n`;
+                            } else {
+                                errorMsg += `• ${errors}\n`;
+                            }
+                        }
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de Validación',
+                            text: errorMsg,
+                            confirmButtonColor: '#dc2626'
+                        });
+                        
+                        // Restaurar botón
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al guardar el producto. Por favor intenta nuevamente.',
+                        confirmButtonColor: '#dc2626'
+                    });
+                    
+                    // Restaurar botón
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                });
             });
         }
 

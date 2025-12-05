@@ -1452,7 +1452,7 @@ def forgot_password_view(request):
             
             # Construir URL de recuperación
             site_url = settings.SITE_URL.rstrip('/') if hasattr(settings, 'SITE_URL') else request.build_absolute_uri('/').rstrip('/')
-            reset_url = f'{site_url}/reset-password/?token={token.token}'
+            reset_url = f'{site_url}/dashboard/reset-password/?token={token.token}'
             
             # Renderizar template de email
             html_message = render_to_string('dashboard/password_reset_email.html', {
